@@ -158,8 +158,16 @@ class _BetterPlayerSubtitlesDrawerState
   }
 
   Widget _buildHtmlWidget(String text, TextStyle textStyle) {
+    final textAlign = _configuration!.textAlign.toString().split('.').last;
+    String styledHtml = '''
+<div style="
+  text-align: $textAlign;
+">
+  $text
+</div>
+''';
     return HtmlWidget(
-      text,
+      styledHtml,
       textStyle: textStyle,
     );
   }
