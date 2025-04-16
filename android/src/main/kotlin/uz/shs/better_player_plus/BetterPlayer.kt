@@ -720,20 +720,23 @@ internal class BetterPlayer(
     }
 
     private fun setAudioTrack(rendererIndex: Int, groupIndex: Int) {
-        val mappedTrackInfo = trackSelector.currentMappedTrackInfo
-        if (mappedTrackInfo != null) {
-            val builder = trackSelector.parameters.buildUpon()
-                .setRendererDisabled(rendererIndex, false)
-                .addOverride(
-                    TrackSelectionOverride(
-                        mappedTrackInfo.getTrackGroups(rendererIndex).get(groupIndex),
-                        mappedTrackInfo.getTrackGroups(rendererIndex)
-                            .indexOf(mappedTrackInfo.getTrackGroups(rendererIndex).get(groupIndex))
-                    )
-                )
+        val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return
+        val rendererIndex = findAudioRenderer(mappedTrackInfo) ?: return
 
-            trackSelector.setParameters(builder)
-        }
+        val override = TrackSelectionOverride(
+            mappedTrackInfo.getTrackGroups(rendererIndex)[groupIndex],
+            listOf(0)
+        )
+
+        val newParams = trackSelector
+            .parameters
+            .buildUpon()
+            .setRendererDisabled(rendererIndex, false)
+            .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
+            .addOverride(override)
+            .build()
+
+        trackSelector.setParameters(newParams)
     }
 
     private fun sendSeekToEvent(positionMs: Long) {
