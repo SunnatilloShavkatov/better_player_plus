@@ -209,7 +209,10 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             }
 
             ENABLE_PICTURE_IN_PICTURE_METHOD -> {
-                enablePictureInPicture(player)
+                enablePictureInPicture(
+                    player, 
+                    call.argument(WIDTH_PARAMETER)!!,
+                    call.argument(HEIGHT_PARAMETER)!!,)
                 result.success(null)
             }
 
@@ -432,11 +435,20 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             .hasSystemFeature(PackageManager.FEATURE_PICTURE_IN_PICTURE)
     }
 
-    private fun enablePictureInPicture(player: BetterPlayer) {
+    private fun enablePictureInPicture(player: BetterPlayer, width: Double?, height: Double?) {
+        Log.d(TAG, "enablePictureInPicture width $width height$height")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val widthInt = width?.toInt()
+            val heightInt = height?.toInt()
+            val aspectRatio: Rational = if (widthInt != null && heightInt != null && widthInt > 0 && heightInt > 0) {
+                Rational(widthInt, heightInt)
+            } else {
+                Rational(16, 9) // Mặc định
+            }
+
             player.setupMediaSession(flutterState!!.applicationContext)
             activity!!.enterPictureInPictureMode(PictureInPictureParams.Builder().setAspectRatio(
-                Rational(16, 9)
+                aspectRatio
             ).build())
             startPictureInPictureListenerTimer(player)
             player.onPictureInPictureStatusChanged(true)
