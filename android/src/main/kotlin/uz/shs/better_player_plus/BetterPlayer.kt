@@ -727,10 +727,11 @@ internal class BetterPlayer(
             listOf(0)
         )
 
+        Log.d(TAG, "setAudioTrack rendererIndex $rendererIndex groupIndex$groupIndex")
+
         val newParams = trackSelector
             .parameters
             .buildUpon()
-            .setRendererDisabled(rendererIndex, false)
             .clearOverridesOfType(C.TRACK_TYPE_AUDIO)
             .addOverride(override)
             .build()
