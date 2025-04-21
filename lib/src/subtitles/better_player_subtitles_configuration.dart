@@ -54,4 +54,34 @@ class BetterPlayerSubtitlesConfiguration {
     this.backgroundColor = Colors.transparent,
     this.textAlign = TextAlign.center,
   });
+
+  BetterPlayerSubtitlesConfiguration copyWith({
+    double? fontSize,
+    Color? fontColor,
+    bool? outlineEnabled,
+    Color? outlineColor,
+    double? outlineSize,
+    String? fontFamily,
+    double? leftPadding,
+    double? rightPadding,
+    double? bottomPadding,
+    Alignment? alignment,
+    Color? backgroundColor,
+    TextAlign? textAlign,
+  }) {
+    return BetterPlayerSubtitlesConfiguration(
+      fontSize: fontSize ?? this.fontSize,
+      fontColor: fontColor ?? this.fontColor,
+      outlineEnabled: outlineEnabled ?? this.outlineEnabled,
+      outlineColor: outlineColor ?? this.outlineColor,
+      outlineSize: outlineSize ?? this.outlineSize,
+      fontFamily: fontFamily ?? this.fontFamily,
+      leftPadding: leftPadding ?? this.leftPadding,
+      rightPadding: rightPadding ?? this.rightPadding,
+      bottomPadding: bottomPadding ?? this.bottomPadding,
+      alignment: alignment ?? this.alignment,
+      backgroundColor: backgroundColor ?? this.backgroundColor,
+      textAlign: textAlign ?? this.textAlign,
+    );
+  }
 }

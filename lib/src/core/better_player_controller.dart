@@ -23,7 +23,7 @@ class BetterPlayerController {
   static const String _authorizationHeader = "Authorization";
 
   ///General configuration used in controller instance.
-  final BetterPlayerConfiguration betterPlayerConfiguration;
+  BetterPlayerConfiguration betterPlayerConfiguration;
 
   ///Playlist configuration used in controller instance.
   final BetterPlayerPlaylistConfiguration? betterPlayerPlaylistConfiguration;
@@ -1202,6 +1202,16 @@ class BetterPlayerController {
 
     _betterPlayerAsmsAudioTrack = audioTrack;
     videoPlayerController!.setAudioTrack(audioTrack.label, audioTrack.id);
+  }
+
+  //Change subtitle Configuration
+  void setSubtitleConfiguration(
+      BetterPlayerSubtitlesConfiguration subtitlesConfiguration) {
+    this.betterPlayerConfiguration = betterPlayerConfiguration.copyWith(
+        subtitlesConfiguration: subtitlesConfiguration);
+    _postControllerEvent(
+      BetterPlayerControllerEvent.changeSubtitlesConfiguration,
+    );
   }
 
   ///Enable or disable audio mixing with other sound within device.

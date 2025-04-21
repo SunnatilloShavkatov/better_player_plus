@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:better_player_plus/better_player_plus.dart';
+import 'package:better_player_plus/src/configuration/better_player_controller_event.dart';
 import 'package:better_player_plus/src/subtitles/better_player_subtitle.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
@@ -35,6 +36,8 @@ class _BetterPlayerSubtitlesDrawerState
   BetterPlayerSubtitlesConfiguration? _configuration;
   bool _playerVisible = false;
 
+  StreamSubscription? _streamSubscription;
+
   ///Stream used to detect if play controls are visible or not
   late StreamSubscription _visibilityStreamSubscription;
 
@@ -55,6 +58,26 @@ class _BetterPlayerSubtitlesDrawerState
 
     widget.betterPlayerController.videoPlayerController!
         .addListener(_updateState);
+
+    _streamSubscription =
+        widget.betterPlayerController.controllerEventStream.listen((event) {
+      if (event == BetterPlayerControllerEvent.changeSubtitlesConfiguration) {
+        _configuration = widget.betterPlayerController.betterPlayerConfiguration
+            .subtitlesConfiguration;
+        _outerTextStyle = TextStyle(
+            fontSize: _configuration!.fontSize,
+            fontFamily: _configuration!.fontFamily,
+            foreground: Paint()
+              ..style = PaintingStyle.stroke
+              ..strokeWidth = _configuration!.outlineSize
+              ..color = _configuration!.outlineColor);
+
+        _innerTextStyle = TextStyle(
+            fontFamily: _configuration!.fontFamily,
+            color: _configuration!.fontColor,
+            fontSize: _configuration!.fontSize);
+      }
+    });
 
     _outerTextStyle = TextStyle(
         fontSize: _configuration!.fontSize,
@@ -77,6 +100,7 @@ class _BetterPlayerSubtitlesDrawerState
     widget.betterPlayerController.videoPlayerController!
         .removeListener(_updateState);
     _visibilityStreamSubscription.cancel();
+    _streamSubscription?.cancel();
     super.dispose();
   }
 
