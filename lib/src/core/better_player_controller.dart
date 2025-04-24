@@ -23,7 +23,7 @@ class BetterPlayerController {
   static const String _authorizationHeader = "Authorization";
 
   ///General configuration used in controller instance.
-  final BetterPlayerConfiguration betterPlayerConfiguration;
+  BetterPlayerConfiguration betterPlayerConfiguration;
 
   ///Playlist configuration used in controller instance.
   final BetterPlayerPlaylistConfiguration? betterPlayerPlaylistConfiguration;
@@ -1055,7 +1055,8 @@ class BetterPlayerController {
   ///Enable Picture in Picture (PiP) mode. [betterPlayerGlobalKey] is required
   ///to open PiP mode in iOS. When device is not supported, PiP mode won't be
   ///open.
-  Future<void>? enablePictureInPicture(GlobalKey betterPlayerGlobalKey) async {
+  Future<void>? enablePictureInPicture(GlobalKey betterPlayerGlobalKey,
+      {double? inputWidth, double? inputHeight}) async {
     if (videoPlayerController == null) {
       throw StateError("The data source has not been initialized");
     }
@@ -1070,7 +1071,7 @@ class BetterPlayerController {
       if (Platform.isAndroid) {
         _wasInFullScreenBeforePiP = _isFullScreen;
         await videoPlayerController?.enablePictureInPicture(
-            left: 0, top: 0, width: 0, height: 0);
+            left: 0, top: 0, width: inputWidth ?? 0, height: inputHeight ?? 0);
         enterFullScreen();
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.pipStart));
         return;
@@ -1201,6 +1202,16 @@ class BetterPlayerController {
 
     _betterPlayerAsmsAudioTrack = audioTrack;
     videoPlayerController!.setAudioTrack(audioTrack.label, audioTrack.id);
+  }
+
+  //Change subtitle Configuration
+  void setSubtitleConfiguration(
+      BetterPlayerSubtitlesConfiguration subtitlesConfiguration) {
+    this.betterPlayerConfiguration = betterPlayerConfiguration.copyWith(
+        subtitlesConfiguration: subtitlesConfiguration);
+    _postControllerEvent(
+      BetterPlayerControllerEvent.changeSubtitlesConfiguration,
+    );
   }
 
   ///Enable or disable audio mixing with other sound within device.
