@@ -1,7 +1,9 @@
 package uz.shs.better_player_plus
 
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 
+@UnstableApi
 internal class CustomDefaultLoadControl {
     /**
      * The default minimum duration of media that the player will attempt to ensure is buffered

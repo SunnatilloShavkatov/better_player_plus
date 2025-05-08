@@ -3,6 +3,7 @@
 // found in the LICENSE file.
 package uz.shs.better_player_plus
 
+import androidx.media3.common.util.UnstableApi
 import io.flutter.plugin.common.EventChannel.EventSink
 import java.util.ArrayList
 
@@ -13,6 +14,7 @@ import java.util.ArrayList
  * This class is not thread-safe. All calls must be done on the same thread or synchronized
  * externally.
  */
+@UnstableApi
 internal class QueuingEventSink : EventSink {
     private var delegate: EventSink? = null
     private val eventQueue = ArrayList<Any>()

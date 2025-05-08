@@ -3,6 +3,7 @@ package uz.shs.better_player_plus
 import android.content.Context
 import android.net.Uri
 import android.util.Log
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import androidx.media3.datasource.HttpDataSource
 import androidx.media3.datasource.cache.CacheWriter
@@ -18,6 +19,7 @@ import java.util.*
  * Cache worker which download part of video and save in cache for future usage. The cache job
  * will be executed in work manager.
  */
+@UnstableApi
 class CacheWorker(
     private val context: Context,
     params: WorkerParameters

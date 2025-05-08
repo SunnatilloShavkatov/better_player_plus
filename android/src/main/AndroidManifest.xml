@@ -1,1 +1,29 @@
-<manifest package="uz.shs.better_player_plus" />
+<manifest package="uz.shs.better_player_plus"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Permisos -->
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+
+    <application>
+        <!-- Servicio para la reproducción en segundo plano -->
+        <service
+            android:name="uz.shs.better_player_plus.BetterPlayerPlugin"
+            android:foregroundServiceType="mediaPlayback"
+            android:exported="true">
+        </service>
+
+        <!-- Receptor para los botones de medios (Play, Pause, etc) -->
+        <receiver android:name="androidx.media.session.MediaButtonReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+
+        <!-- Receptor para las notificaciones -->
+        <!-- <receiver
+             android:name="uz.shs.better_player_plus.BetterPlayerNotificationReceiver"
+             android:exported="true" />-->
+     </application>
+ </manifest>

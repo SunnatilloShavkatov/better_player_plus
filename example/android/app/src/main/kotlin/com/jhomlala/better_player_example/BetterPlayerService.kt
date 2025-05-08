@@ -8,6 +8,7 @@ import android.os.IBinder
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.PRIORITY_MIN
+import io.flutter.Log
 
 class BetterPlayerService : Service() {
 
@@ -47,7 +48,12 @@ class BetterPlayerService : Service() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationBuilder.setCategory(Notification.CATEGORY_SERVICE);
         }
-        startForeground(foregroundNotificationId, notificationBuilder.build())
+        try {
+            startForeground(foregroundNotificationId, notificationBuilder.build())
+        } catch (e: Exception) {
+            Log.e("Service cannot be started in foreground ", e.message.toString());
+            Log.e("Starting DFU service in background instead", "Error");
+        }
         return START_NOT_STICKY
     }
 
