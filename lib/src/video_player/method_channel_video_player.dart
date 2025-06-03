@@ -70,7 +70,8 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           'imageUrl': dataSource.imageUrl,
           'notificationChannelName': dataSource.notificationChannelName,
           'overriddenDuration': dataSource.overriddenDuration?.inMilliseconds,
-          'activityName': dataSource.activityName
+          'activityName': dataSource.activityName,
+          'formatHint': dataSource.rawFormalHint,
         };
         break;
       case DataSourceType.network:
@@ -111,7 +112,8 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           'notificationChannelName': dataSource.notificationChannelName,
           'overriddenDuration': dataSource.overriddenDuration?.inMilliseconds,
           'activityName': dataSource.activityName,
-          'clearKey': dataSource.clearKey
+          'clearKey': dataSource.clearKey,
+          'formatHint': dataSource.rawFormalHint,
         };
         break;
     }
