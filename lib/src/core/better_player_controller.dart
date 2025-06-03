@@ -300,10 +300,19 @@ class BetterPlayerController {
   ///This method configures tracks, subtitles and audio tracks from given
   ///master playlist.
   Future _setupAsmsDataSource(BetterPlayerDataSource source) async {
-    final String? data = await BetterPlayerAsmsUtils.getDataFromUrl(
-      betterPlayerDataSource!.url,
-      _getHeaders(),
-    );
+    String? data;
+
+    if (source.type == BetterPlayerDataSourceType.network) {
+      await BetterPlayerAsmsUtils.getDataFromUrl(
+        betterPlayerDataSource!.url,
+        _getHeaders(),
+      );
+    } else if (source.type == BetterPlayerDataSourceType.file) {
+      data = await BetterPlayerAsmsUtils.getDataFromFile(
+        betterPlayerDataSource!.url,
+      );
+    }
+
     if (data != null) {
       final BetterPlayerAsmsDataHolder _response =
           await BetterPlayerAsmsUtils.parse(data, betterPlayerDataSource!.url);
@@ -320,7 +329,9 @@ class BetterPlayerController {
         asmsSubtitles.forEach((BetterPlayerAsmsSubtitle asmsSubtitle) {
           _betterPlayerSubtitlesSourceList.add(
             BetterPlayerSubtitlesSource(
-              type: BetterPlayerSubtitlesSourceType.network,
+              type: source.type == BetterPlayerDataSourceType.network
+                  ? BetterPlayerSubtitlesSourceType.network
+                  : BetterPlayerSubtitlesSourceType.file,
               name: asmsSubtitle.name,
               urls: asmsSubtitle.realUrls,
               asmsIsSegmented: asmsSubtitle.isSegmented,
@@ -483,7 +494,29 @@ class BetterPlayerController {
         }
 
         await videoPlayerController?.setFileDataSource(
-            File(betterPlayerDataSource.url),
+          File(betterPlayerDataSource.url),
+          showNotification: _betterPlayerDataSource
+              ?.notificationConfiguration?.showNotification,
+          title: _betterPlayerDataSource?.notificationConfiguration?.title,
+          author: _betterPlayerDataSource?.notificationConfiguration?.author,
+          imageUrl:
+              _betterPlayerDataSource?.notificationConfiguration?.imageUrl,
+          notificationChannelName: _betterPlayerDataSource
+              ?.notificationConfiguration?.notificationChannelName,
+          overriddenDuration: _betterPlayerDataSource!.overriddenDuration,
+          activityName:
+              _betterPlayerDataSource?.notificationConfiguration?.activityName,
+          clearKey: _betterPlayerDataSource?.drmConfiguration?.clearKey,
+          formatHint: _getVideoFormat(_betterPlayerDataSource!.videoFormat),
+        );
+        break;
+      case BetterPlayerDataSourceType.memory:
+        final file = await _createFile(_betterPlayerDataSource!.bytes!,
+            extension: _betterPlayerDataSource!.videoExtension);
+
+        if (file.existsSync()) {
+          await videoPlayerController?.setFileDataSource(
+            file,
             showNotification: _betterPlayerDataSource
                 ?.notificationConfiguration?.showNotification,
             title: _betterPlayerDataSource?.notificationConfiguration?.title,
@@ -495,27 +528,9 @@ class BetterPlayerController {
             overriddenDuration: _betterPlayerDataSource!.overriddenDuration,
             activityName: _betterPlayerDataSource
                 ?.notificationConfiguration?.activityName,
-            clearKey: _betterPlayerDataSource?.drmConfiguration?.clearKey);
-        break;
-      case BetterPlayerDataSourceType.memory:
-        final file = await _createFile(_betterPlayerDataSource!.bytes!,
-            extension: _betterPlayerDataSource!.videoExtension);
-
-        if (file.existsSync()) {
-          await videoPlayerController?.setFileDataSource(file,
-              showNotification: _betterPlayerDataSource
-                  ?.notificationConfiguration?.showNotification,
-              title: _betterPlayerDataSource?.notificationConfiguration?.title,
-              author:
-                  _betterPlayerDataSource?.notificationConfiguration?.author,
-              imageUrl:
-                  _betterPlayerDataSource?.notificationConfiguration?.imageUrl,
-              notificationChannelName: _betterPlayerDataSource
-                  ?.notificationConfiguration?.notificationChannelName,
-              overriddenDuration: _betterPlayerDataSource!.overriddenDuration,
-              activityName: _betterPlayerDataSource
-                  ?.notificationConfiguration?.activityName,
-              clearKey: _betterPlayerDataSource?.drmConfiguration?.clearKey);
+            clearKey: _betterPlayerDataSource?.drmConfiguration?.clearKey,
+            formatHint: _getVideoFormat(_betterPlayerDataSource!.videoFormat),
+          );
           _tempFiles.add(file);
         } else {
           throw ArgumentError("Couldn't create file from memory.");
