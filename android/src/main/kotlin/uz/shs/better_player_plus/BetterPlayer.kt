@@ -397,7 +397,7 @@ internal class BetterPlayer(
             if (lastPathSegment == null) {
                 lastPathSegment = ""
             }
-            type = Util.inferContentTypeForExtension(lastPathSegment)
+            type = Util.inferContentTypeForExtension(lastPathSegment.split(".")[1])
         } else {
             type = when (formatHint) {
                 FORMAT_SS -> C.CONTENT_TYPE_SS
