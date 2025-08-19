@@ -55,4 +55,13 @@ class BetterPlayerAsmsUtils {
       return null;
     }
   }
+
+  static Future<String?> getDataFromFile(String path) async {
+    try {
+      return File(path).readAsString();
+    } on Exception catch (exception) {
+      BetterPlayerUtils.log("GetDataFromUrl failed: $exception");
+      return null;
+    }
+  }
 }

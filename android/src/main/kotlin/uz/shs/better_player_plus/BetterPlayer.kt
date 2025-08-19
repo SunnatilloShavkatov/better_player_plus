@@ -29,6 +29,7 @@ import androidx.media3.ui.PlayerNotificationManager.BitmapCallback
 import androidx.work.OneTimeWorkRequest
 import android.util.Log
 import android.view.Surface
+import androidx.annotation.OptIn
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.Observer
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -44,6 +45,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.datasource.DataSource
 import androidx.media3.datasource.DefaultDataSource
@@ -199,6 +201,8 @@ internal class BetterPlayer(
         } else {
             dataSourceFactory = DefaultDataSource.Factory(context)
         }
+
+        Log.e(TAG, "selected formatHint: $formatHint")
         val mediaSource = buildMediaSource(uri, dataSourceFactory, formatHint, cacheKey, context)
         if (overriddenDuration != 0L) {
             val clippingMediaSource = ClippingMediaSource(mediaSource, 0, overriddenDuration * 1000)
@@ -379,6 +383,7 @@ internal class BetterPlayer(
         bitmap = null
     }
 
+    @OptIn(UnstableApi::class)
     private fun buildMediaSource(
         uri: Uri,
         mediaDataSourceFactory: DataSource.Factory,
