@@ -12,8 +12,7 @@ A new flutter plugin project.
   s.license          = { :file => '../LICENSE' }
   s.author           = { 'Your Company' => 'email@example.com' }
   s.source           = { :path => '.' }
-  s.source_files = 'Classes/**/*'
-  s.public_header_files = 'Classes/**/*.h'
+  s.source_files = 'Classes/**/*.{swift}'
   s.dependency 'Flutter'
   s.dependency 'Cache', '~> 6.0.0'
   s.dependency 'GCDWebServer'
@@ -21,6 +20,6 @@ A new flutter plugin project.
   s.dependency 'PINCache'
   
   s.platform = :ios, '13.0'
+  s.swift_version = '5.0'
   s.pod_target_xcconfig = { 'DEFINES_MODULE' => 'YES', 'VALID_ARCHS[sdk=iphonesimulator*]' => 'x86_64' }
 end
-
