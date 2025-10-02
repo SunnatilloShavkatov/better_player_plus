@@ -5,19 +5,21 @@ import AVKit
 import MediaPlayer
 import UIKit
 
+@objc(BetterPlayerPlugin)
 public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFactory {
     private weak var messenger: FlutterBinaryMessenger?
     private var players: [Int64: BetterPlayer] = [:]
     private var registrar: FlutterPluginRegistrar?
 
-    private var dataSourceDict: [String: [String: Any]] = [:]
-    private var timeObserverIdDict: [String: Any] = [:]
-    private var artworkImageDict: [String: MPMediaItemArtwork] = [:]
+    private var dataSourceDict: [Int64: [String: Any]] = [:]
+    private var timeObserverIdDict: [Int64: Any] = [:]
+    private var artworkImageDict: [Int64: MPMediaItemArtwork] = [:]
     private var cacheManager: CacheManager = CacheManager()
     private var texturesCount: Int64 = -1
     private var notificationPlayer: BetterPlayer?
     private var remoteCommandsInitialized: Bool = false
 
+    @objc
     public static func register(with registrar: FlutterPluginRegistrar) {
         let channel = FlutterMethodChannel(name: "better_player_channel", binaryMessenger: registrar.messenger())
         let instance = BetterPlayerPlugin(registrar: registrar)
@@ -33,15 +35,14 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
     }
 
     public func create(withFrame frame: CGRect, viewIdentifier viewId: Int64, arguments args: Any?) -> FlutterPlatformView {
-        guard let dict = args as? [String: Any], let textureId = dict["textureId"] as? Int else {
-            return BetterPlayer()
+        if let dict = args as? [String: Any] {
+            if let textureId = dict["textureId"] as? Int64, let player = players[textureId] { return player }
+            if let textureIdInt = dict["textureId"] as? Int, let player = players[Int64(textureIdInt)] { return player }
         }
-        return players[Int64(textureId)] ?? BetterPlayer()
+        return BetterPlayer()
     }
 
-    public func createArgsCodec() -> (NSObject & FlutterMessageCodec) {
-        return FlutterStandardMessageCodec.sharedInstance()
-    }
+    public func createArgsCodec() -> (NSObject & FlutterMessageCodec) { FlutterStandardMessageCodec.sharedInstance() }
 
     private func newTextureId() -> Int64 { texturesCount += 1; return texturesCount }
 
@@ -61,13 +62,11 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
     }
 
     private func setRemoteCommandsNotificationNotActive() {
-        if players.isEmpty {
-            try? AVAudioSession.sharedInstance().setActive(false)
-        }
+        if players.isEmpty { try? AVAudioSession.sharedInstance().setActive(false) }
         UIApplication.shared.endReceivingRemoteControlEvents()
     }
 
-    private func setupRemoteCommands(_ player: BetterPlayer) {
+    private func setupRemoteCommands() {
         if remoteCommandsInitialized { return }
         let commandCenter = MPRemoteCommandCenter.shared()
         commandCenter.togglePlayPauseCommand.isEnabled = true
@@ -78,59 +77,55 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
         if #available(iOS 9.1, *) { commandCenter.changePlaybackPositionCommand.isEnabled = true }
 
         commandCenter.togglePlayPauseCommand.addTarget { [weak self] _ in
-            guard let self = self, let notificationPlayer = self.notificationPlayer else { return .commandFailed }
-            if notificationPlayer.isPlaying { notificationPlayer.eventSink?(["event": "play"]) }
-            else { notificationPlayer.eventSink?(["event": "pause"]) }
+            guard let self = self, let p = self.notificationPlayer else { return .success }
+            if p.isPlaying { p.eventSink?(["event": "play"]) } else { p.eventSink?(["event": "pause"]) }
             return .success
         }
         commandCenter.playCommand.addTarget { [weak self] _ in
-            guard let self = self, let notificationPlayer = self.notificationPlayer else { return .commandFailed }
-            notificationPlayer.eventSink?(["event": "play"]) ; return .success
+            self?.notificationPlayer?.eventSink?(["event": "play"]) ; return .success
         }
         commandCenter.pauseCommand.addTarget { [weak self] _ in
-            guard let self = self, let notificationPlayer = self.notificationPlayer else { return .commandFailed }
-            notificationPlayer.eventSink?(["event": "pause"]) ; return .success
+            self?.notificationPlayer?.eventSink?(["event": "pause"]) ; return .success
         }
         if #available(iOS 9.1, *) {
             commandCenter.changePlaybackPositionCommand.addTarget { [weak self] event in
-                guard let self = self, let notificationPlayer = self.notificationPlayer, let positionEvent = event as? MPChangePlaybackPositionCommandEvent else { return .commandFailed }
-                let time = CMTimeMake(value: Int64(positionEvent.positionTime), timescale: 1)
-                let millis = BetterPlayerTimeUtils.cmTimeToMillis(time)
-                notificationPlayer.seekTo(Int(millis))
-                notificationPlayer.eventSink?(["event": "seek", "position": NSNumber(value: millis)])
+                guard let self = self, let p = self.notificationPlayer, let e = event as? MPChangePlaybackPositionCommandEvent else { return .success }
+                let time = CMTimeMake(value: Int64(e.positionTime), timescale: 1)
+                let millis = BetterPlayerTimeUtils.FLTCMTimeToMillis(time)
+                p.seekTo(Int(millis))
+                p.eventSink?(["event": "seek", "position": NSNumber(value: millis)])
                 return .success
             }
         }
         remoteCommandsInitialized = true
     }
 
-    private func setupRemoteCommandNotification(_ player: BetterPlayer, title: String?, author: String?, imageUrl: String?) {
+    private func setupRemoteCommandNotification(textureId: Int64, player: BetterPlayer, title: String, author: String, imageUrl: String?) {
         let positionInSeconds = Double(player.position()) / 1000.0
         let durationInSeconds = Double(player.duration()) / 1000.0
         var nowPlaying: [String: Any] = [
-            MPMediaItemPropertyArtist: author ?? "",
-            MPMediaItemPropertyTitle: title ?? "",
+            MPMediaItemPropertyArtist: author,
+            MPMediaItemPropertyTitle: title,
             MPNowPlayingInfoPropertyElapsedPlaybackTime: NSNumber(value: positionInSeconds),
             MPMediaItemPropertyPlaybackDuration: NSNumber(value: durationInSeconds),
             MPNowPlayingInfoPropertyPlaybackRate: NSNumber(value: 1)
         ]
-        if let imageUrl = imageUrl {
-            let key = getTextureId(player)
-            if let artwork = artworkImageDict[key] {
+        if let imageUrl = imageUrl, !imageUrl.isEmpty {
+            if let artwork = artworkImageDict[textureId] {
                 nowPlaying[MPMediaItemPropertyArtwork] = artwork
                 MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlaying
             } else {
                 DispatchQueue.global(qos: .default).async { [weak self] in
                     guard let self = self else { return }
                     var tempImage: UIImage?
-                    if imageUrl.contains("http") {
-                        if let url = URL(string: imageUrl), let data = try? Data(contentsOf: url) { tempImage = UIImage(data: data) }
+                    if imageUrl.contains("http"), let url = URL(string: imageUrl), let data = try? Data(contentsOf: url) {
+                        tempImage = UIImage(data: data)
                     } else {
                         tempImage = UIImage(contentsOfFile: imageUrl)
                     }
-                    if let tempImage = tempImage {
-                        let artwork = MPMediaItemArtwork(boundsSize: tempImage.size) { _ in tempImage }
-                        self.artworkImageDict[key] = artwork
+                    if let img = tempImage {
+                        let artwork = MPMediaItemArtwork(boundsSize: img.size) { _ in img }
+                        self.artworkImageDict[textureId] = artwork
                         nowPlaying[MPMediaItemPropertyArtwork] = artwork
                     }
                     MPNowPlayingInfoCenter.default().nowPlayingInfo = nowPlaying
@@ -141,37 +136,25 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
         }
     }
 
-    private func getTextureId(_ player: BetterPlayer) -> String {
-        for (key, value) in players where value === player { return String(key) }
-        return ""
-    }
-
-    private func setupUpdateListener(_ player: BetterPlayer, title: String?, author: String?, imageUrl: String?) {
-        let observer = player.player.addPeriodicTimeObserver(forInterval: CMTimeMake(value: 1, timescale: 1), queue: nil) { [weak self] _ in
-            guard let self = self else { return }
-            self.setupRemoteCommandNotification(player, title: title, author: author, imageUrl: imageUrl)
+    private func setupUpdateListener(textureId: Int64, player: BetterPlayer, title: String, author: String, imageUrl: String?) {
+        let token = player.player.addPeriodicTimeObserver(forInterval: CMTimeMake(value: 1, timescale: 1), queue: nil) { [weak self] _ in
+            self?.setupRemoteCommandNotification(textureId: textureId, player: player, title: title, author: author, imageUrl: imageUrl)
         }
-        let key = getTextureId(player)
-        timeObserverIdDict[key] = observer
+        timeObserverIdDict[textureId] = token
     }
 
-    private func disposeNotificationData(_ player: BetterPlayer) {
+    private func disposeNotificationData(textureId: Int64, player: BetterPlayer) {
         if notificationPlayer === player { notificationPlayer = nil; remoteCommandsInitialized = false }
-        let key = getTextureId(player)
-        if let observer = timeObserverIdDict[key] {
-            player.player.removeTimeObserver(observer)
+        if let token = timeObserverIdDict.removeValue(forKey: textureId) {
+            player.player.removeTimeObserver(token)
         }
-        timeObserverIdDict.removeValue(forKey: key)
-        artworkImageDict.removeValue(forKey: key)
+        artworkImageDict.removeValue(forKey: textureId)
         MPNowPlayingInfoCenter.default().nowPlayingInfo = [:]
     }
 
-    private func stopOtherUpdateListener(_ player: BetterPlayer) {
-        let currentPlayerTextureId = getTextureId(player)
-        for (textureId, observer) in timeObserverIdDict where textureId != currentPlayerTextureId {
-            if let otherPlayer = players[Int64(textureId) ?? 0] {
-                otherPlayer.player.removeTimeObserver(observer)
-            }
+    private func stopOtherUpdateListener(currentTextureId: Int64) {
+        for (tid, token) in timeObserverIdDict where tid != currentTextureId {
+            if let player = players[tid] { player.player.removeTimeObserver(token) }
         }
         timeObserverIdDict.removeAll()
     }
@@ -198,39 +181,39 @@ extension BetterPlayerPlugin: FlutterMethodCallDelegate {
         case "setDataSource":
             player.clear()
             if let dataSource = args["dataSource"] as? [String: Any] {
-                dataSourceDict[getTextureId(player)] = dataSource
-                let asset = dataSource["asset"] as? String
-                let uri = dataSource["uri"] as? String
+                dataSourceDict[textureIdNumber.int64Value] = dataSource
+                let assetArg = dataSource["asset"] as? String
+                let uriArg = dataSource["uri"] as? String
                 let key = dataSource["key"] as? String
                 let certificateUrl = dataSource["certificateUrl"] as? String
                 let licenseUrl = dataSource["licenseUrl"] as? String
-                var headers = dataSource["headers"] as? [NSObject: Any] ?? [:]
+                let headers = (dataSource["headers"] as? [String: String]) ?? [:]
                 let cacheKey = dataSource["cacheKey"] as? String
                 let maxCacheSize = dataSource["maxCacheSize"] as? NSNumber
                 let videoExtension = dataSource["videoExtension"] as? String
                 let overriddenDuration = (dataSource["overriddenDuration"] as? NSNumber)?.intValue ?? 0
+                let useCache = (dataSource["useCache"] as? NSNumber)?.boolValue ?? false
                 if let maxCacheSize = maxCacheSize { cacheManager.setMaxCacheSize(maxCacheSize) }
-                if asset != nil {
-                    player.setDataSourceAsset(asset!, key: key, certificateUrl: certificateUrl, licenseUrl: licenseUrl, cacheKey: cacheKey, cacheManager: cacheManager, overriddenDuration: overriddenDuration)
-                } else if let uri = uri, let url = URL(string: uri) {
-                    let useCache = (dataSource["useCache"] as? NSNumber)?.boolValue ?? false
+                if let asset = assetArg {
+                    let assetPath: String
+                    if let package = dataSource["package"] as? String, !package.isEmpty {
+                        assetPath = registrar?.lookupKey(forAsset: asset, fromPackage: package) ?? asset
+                    } else {
+                        assetPath = registrar?.lookupKey(forAsset: asset) ?? asset
+                    }
+                    player.setDataSourceAsset(assetPath, key: key, certificateUrl: certificateUrl, licenseUrl: licenseUrl, cacheKey: cacheKey, cacheManager: cacheManager, overriddenDuration: overriddenDuration)
+                } else if let uri = uriArg, let url = URL(string: uri) {
                     player.setDataSourceURL(url, key: key, certificateUrl: certificateUrl, licenseUrl: licenseUrl, headers: headers, useCache: useCache, cacheKey: cacheKey, cacheManager: cacheManager, overriddenDuration: overriddenDuration, videoExtension: videoExtension)
-                } else {
-                    result(FlutterMethodNotImplemented); return
-                }
+                } else { result(FlutterMethodNotImplemented); return }
             }
             result(nil)
         case "dispose":
             player.clear()
-            disposeNotificationData(player)
+            disposeNotificationData(textureId: textureIdNumber.int64Value, player: player)
             setRemoteCommandsNotificationNotActive()
             players.removeValue(forKey: textureIdNumber.int64Value)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                if !player.disposed { player.dispose() }
-            }
-            if players.isEmpty {
-                try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
-            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1) { if !player.disposed { player.dispose() } }
+            if players.isEmpty { try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation]) }
             result(nil)
         case "setLooping":
             player.isLooping = (args["looping"] as? NSNumber)?.boolValue ?? false
@@ -239,7 +222,7 @@ extension BetterPlayerPlugin: FlutterMethodCallDelegate {
             player.setVolume(args["volume"] as? Double ?? 1.0)
             result(nil)
         case "play":
-            setupRemoteNotification(player)
+            setupRemoteNotification(player: player, textureId: textureIdNumber.int64Value)
             player.play()
             result(nil)
         case "position":
@@ -271,7 +254,7 @@ extension BetterPlayerPlugin: FlutterMethodCallDelegate {
         case "disablePictureInPicture":
             player.disablePictureInPicture(); player.setPictureInPicture(false); result(nil)
         case "setAudioTrack":
-            let name = args["name"] as? String ?? ""
+            let name = args["name"] as? String
             let index = (args["index"] as? NSNumber)?.intValue ?? 0
             player.setAudioTrack(name: name, index: index); result(nil)
         case "setMixWithOthers":
@@ -280,13 +263,13 @@ extension BetterPlayerPlugin: FlutterMethodCallDelegate {
             if let dataSource = args["dataSource"] as? [String: Any] {
                 let urlArg = dataSource["uri"] as? String
                 let cacheKey = dataSource["cacheKey"] as? String
-                let headers = dataSource["headers"] as? [NSObject: Any] ?? [:]
+                let headers = dataSource["headers"] as? [String: String] ?? [:]
                 let maxCacheSize = dataSource["maxCacheSize"] as? NSNumber
                 let videoExtension = dataSource["videoExtension"] as? String
                 if let maxCacheSize = maxCacheSize { cacheManager.setMaxCacheSize(maxCacheSize) }
                 if let urlArg = urlArg, let url = URL(string: urlArg) {
                     if cacheManager.isPreCacheSupported(url: url, videoExtension: videoExtension) {
-                        cacheManager.preCacheURL(url, cacheKey: cacheKey, videoExtension: videoExtension, withHeaders: headers) { _ in }
+                        cacheManager.preCacheURL(url, cacheKey: cacheKey, videoExtension: videoExtension, withHeaders: headers as [NSObject : AnyObject]) { _ in }
                     } else {
                         NSLog("Pre cache is not supported for given data source.")
                     }
@@ -312,19 +295,19 @@ extension BetterPlayerPlugin: FlutterMethodCallDelegate {
         }
     }
 
-    private func setupRemoteNotification(_ player: BetterPlayer) {
+    private func setupRemoteNotification(player: BetterPlayer, textureId: Int64) {
         notificationPlayer = player
-        stopOtherUpdateListener(player)
-        let dataSource = dataSourceDict[getTextureId(player)] ?? [:]
+        stopOtherUpdateListener(currentTextureId: textureId)
+        let dataSource = dataSourceDict[textureId] ?? [:]
         let showNotification = (dataSource["showNotification"] as? NSNumber)?.boolValue ?? false
-        let title = dataSource["title"] as? String
-        let author = dataSource["author"] as? String
+        let title = (dataSource["title"] as? String) ?? ""
+        let author = (dataSource["author"] as? String) ?? ""
         let imageUrl = dataSource["imageUrl"] as? String
         if showNotification {
             setRemoteCommandsNotificationActive()
-            setupRemoteCommands(player)
-            setupRemoteCommandNotification(player, title: title, author: author, imageUrl: imageUrl)
-            setupUpdateListener(player, title: title, author: author, imageUrl: imageUrl)
+            setupRemoteCommands()
+            setupRemoteCommandNotification(textureId: textureId, player: player, title: title, author: author, imageUrl: imageUrl)
+            setupUpdateListener(textureId: textureId, player: player, title: title, author: author, imageUrl: imageUrl)
         }
     }
 }

@@ -289,6 +289,25 @@ final class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, A
     func setSpeed(_ speed: Double, result: FlutterResult) { if speed == 1.0 || speed == 0.0 { playerRate = 1; result(nil) } else if speed < 0 || speed > 2.0 { result(FlutterError(code: "unsupported_speed", message: "Speed must be >= 0.0 and <= 2.0", details: nil)) } else if (speed > 1.0 && player.currentItem?.canPlayFastForward == true) || (speed < 1.0 && player.currentItem?.canPlaySlowForward == true) { playerRate = Float(speed); result(nil) } else { if speed <= 1.0 { result(FlutterError(code: "unsupported_slow_forward", message: "This video cannot be played slow forward", details: nil)) } }; if isPlaying { if #available(iOS 16, *) { player.defaultRate = Float(speed) }; player.rate = Float(speed) } }
     func setTrackParameters(width: Int, height: Int, bitrate: Int) { player.currentItem?.preferredPeakBitRate = Double(bitrate); if #available(iOS 11.0, *) { player.currentItem?.preferredMaximumResolution = (width == 0 && height == 0) ? .zero : CGSize(width: width, height: height) } }
 
+    func setAudioTrack(name: String?, index: Int) {
+        guard let group = player.currentItem?.asset.mediaSelectionGroup(forMediaCharacteristic: .audible) else { return }
+        let options = group.options
+        for (audioTrackIndex, option) in options.enumerated() {
+            let metas = AVMetadataItem.metadataItems(from: option.commonMetadata, withKey: .commonKeyTitle, keySpace: .common)
+            if let title = metas.first?.stringValue, let name = name, title == name, audioTrackIndex == index {
+                player.currentItem?.select(option, in: group)
+            }
+        }
+    }
+
+    func setMixWithOthers(_ mixWithOthers: Bool) {
+        if mixWithOthers {
+            try? AVAudioSession.sharedInstance().setCategory(.playback, options: .mixWithOthers)
+        } else {
+            try? AVAudioSession.sharedInstance().setCategory(.playback)
+        }
+    }
+
     // MARK: - PiP
     func setPictureInPicture(_ enabled: Bool) { pictureInPicture = enabled; if #available(iOS 9.0, *) { if let pip = pipController, enabled && !pip.isPictureInPictureActive { DispatchQueue.main.async { pip.startPictureInPicture() } } else if let pip = pipController, !enabled && pip.isPictureInPictureActive { DispatchQueue.main.async { pip.stopPictureInPicture() } } } }
 
@@ -298,7 +317,7 @@ final class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, A
 
     func enablePictureInPicture(_ frame: CGRect) { disablePictureInPicture(); usePlayerLayer(frame) }
 
-    private func usePlayerLayer(_ frame: CGRect) { guard true else { return }; playerLayer = AVPlayerLayer(player: player); let vc = UIApplication.shared.keyWindow?.rootViewController; playerLayer?.frame = frame; playerLayer?.needsDisplayOnBoundsChange = true; vc?.view.layer.addSublayer(playerLayer!); vc?.view.layer.needsDisplayOnBoundsChange = true; if #available(iOS 9.0, *) { pipController = nil }; setupPipController(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { self.setPictureInPicture(true) } }
+    private func usePlayerLayer(_ frame: CGRect) { guard true else { return }; playerLayer = AVPlayerLayer(player: player); let vc = UIApplication.shared.connectedScenes.compactMap { ($0 as? UIWindowScene)?.keyWindow }.first?.rootViewController; playerLayer?.frame = frame; playerLayer?.needsDisplayOnBoundsChange = true; vc?.view.layer.addSublayer(playerLayer!); vc?.view.layer.needsDisplayOnBoundsChange = true; if #available(iOS 9.0, *) { pipController = nil }; setupPipController(); DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) { self.setPictureInPicture(true) } }
 
     func disablePictureInPicture() { setPictureInPicture(true); if let layer = playerLayer { layer.removeFromSuperlayer(); playerLayer = nil; eventSink?(["event": "pipStop"]) } }
 
