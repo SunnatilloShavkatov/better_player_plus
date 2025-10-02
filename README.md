@@ -1,9 +1,11 @@
 # Better Player Plus
-[![pub package](https://img.shields.io/pub/v/better_player.svg)](https://pub.dartlang.org/packages/better_player)
+[![pub package](https://img.shields.io/pub/v/better_player_plus.svg)](https://pub.dev/packages/better_player_plus)
 [![pub package](https://img.shields.io/github/license/jhomlala/betterplayer.svg?style=flat)](https://github.com/jhomlala/betterplayer)
 [![pub package](https://img.shields.io/badge/platform-flutter-blue.svg)](https://github.com/jhomlala/betterplayer)
-Use [better_player](https://pub.dev/packages/better_player). 
+Use [better_player_plus](https://pub.dev/packages/better_player_plus). 
 An advanced video player based on `video_player` and Chewie. It solves many common use cases and is easy to use.
+
+Current version: `1.1.0`
 
 <table>
    <tr>
@@ -88,7 +90,7 @@ This plugin is based on [Chewie](https://github.com/brianegan/chewie). Chewie is
 ## Documentation
 * [Official documentation](https://jhomlala.github.io/betterplayer/)
 * [Example application](https://github.com/jhomlala/betterplayer/tree/master/example)
-* [API reference](https://pub.dev/documentation/better_player/latest/better_player/better_player-library.html)
+* [API reference](https://pub.dev/documentation/better_player_plus/latest/)
 
 
 ## Important information
