@@ -1,4 +1,4 @@
-import 'package:better_player_plus/src/configuration/better_player_event_type.dart';
+import 'package:xstream_player/src/configuration/better_player_event_type.dart';
 
 ///Event that happens in player. It can be used to determine current player state
 ///on higher layer.

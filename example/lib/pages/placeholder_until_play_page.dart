@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:xstream_player/xstream_player.dart';
 import 'package:better_player_example/constants.dart';
-import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 
 class PlaceholderUntilPlayPage extends StatefulWidget {
@@ -50,26 +50,39 @@ class _PlaceholderUntilPlayPageState extends State<PlaceholderUntilPlayPage> {
 
   ///_placeholderStreamController is used only to refresh video placeholder
   ///widget.
-  Widget _buildVideoPlaceholder() => StreamBuilder<bool>(
-    stream: _placeholderStreamController.stream,
-    builder: (context, snapshot) => _showPlaceholder ? Image.network(Constants.placeholderUrl) : const SizedBox(),
-  );
+  Widget _buildVideoPlaceholder() {
+    return StreamBuilder<bool>(
+      stream: _placeholderStreamController.stream,
+      builder: (context, snapshot) {
+        return _showPlaceholder ? Image.network(Constants.placeholderUrl) : const SizedBox();
+      },
+    );
+  }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Placeholder until play')),
-    body: Column(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('Normal player with placeholder shown until video is started.', style: TextStyle(fontSize: 16)),
-        ),
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: BetterPlayer(controller: _betterPlayerController),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Placeholder until play"),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "Normal player with placeholder shown until video is started.",
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: BetterPlayer(
+              controller: _betterPlayerController,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

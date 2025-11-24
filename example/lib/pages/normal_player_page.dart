@@ -1,5 +1,5 @@
+import 'package:xstream_player/xstream_player.dart';
 import 'package:better_player_example/constants.dart';
-import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -30,16 +30,20 @@ class _NormalPlayerPageState extends State<NormalPlayerPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Normal player page')),
-    body: Column(
-      children: [
-        const SizedBox(height: 8),
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: BetterPlayer(controller: _betterPlayerController),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Normal player page"),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: BetterPlayer(controller: _betterPlayerController),
+          ),
+        ],
+      ),
+    );
+  }
 }

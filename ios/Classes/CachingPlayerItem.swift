@@ -2,6 +2,7 @@
 
 import Foundation
 import AVFoundation
+import CommonCrypto
 
 fileprivate extension URL {
     
@@ -56,7 +57,7 @@ open class CachingPlayerItem: AVPlayerItem {
                 guard let initialUrl = owner?.url else {
                     fatalError("internal inconsistency")
                 }
-                startDataRequest( url: initialUrl)
+                startDataRequest(url: initialUrl)
             }
             pendingRequests.insert(loadingRequest)
             processPendingRequests()
@@ -206,6 +207,7 @@ open class CachingPlayerItem: AVPlayerItem {
     /// Override/append custom file extension to URL path.
     /// This is required for the player to work correctly with the intended file type.
     init(url: URL, customFileExtension: String?, cacheKey: String?, headers: Dictionary<NSObject,AnyObject>) {
+        
         self.cacheKey = cacheKey
         self.url = url
         self.resourceLoaderDelegate.headers = headers
@@ -236,26 +238,19 @@ open class CachingPlayerItem: AVPlayerItem {
     
     /// Is used for playing from Data.
     init(data: Data, mimeType: String, fileExtension: String) {
-        
-        guard let fakeUrl = URL(string: cachingPlayerItemScheme + "://whatever/file.\(fileExtension)") else {
-            fatalError("internal inconsistency")
-        }
-        
-        self.url = fakeUrl
+        self.cacheKey = "data"
+        self.url = URL(string: cachingPlayerItemScheme + "://whatever/file.\(fileExtension)")!
         self.initialScheme = nil
+        self.customFileExtension = fileExtension
         
         resourceLoaderDelegate.mediaData = data
         resourceLoaderDelegate.playingFromData = true
         resourceLoaderDelegate.mimeType = mimeType
         
-        let asset = AVURLAsset(url: fakeUrl)
+        let asset = AVURLAsset(url: url)
         asset.resourceLoader.setDelegate(resourceLoaderDelegate, queue: DispatchQueue.main)
         super.init(asset: asset, automaticallyLoadedAssetKeys: nil)
         resourceLoaderDelegate.owner = self
-        
-        addObserver(self, forKeyPath: "status", options: NSKeyValueObservingOptions.new, context: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(playbackStalledHandler), name:NSNotification.Name.AVPlayerItemPlaybackStalled, object: self)
     }
     
     // MARK: KVO
@@ -281,5 +276,13 @@ open class CachingPlayerItem: AVPlayerItem {
         removeObserver(self, forKeyPath: "status")
         resourceLoaderDelegate.session?.invalidateAndCancel()
     }
+    
+    override open func isEqual(_ object: Any?) -> Bool {
+        return super.isEqual(object)
+    }
+    
+}
+
+private class HmacSigner {
     
 }

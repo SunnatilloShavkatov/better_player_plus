@@ -5,10 +5,14 @@
 // Dart imports:
 import 'dart:async';
 import 'dart:io';
-import 'package:better_player_plus/src/configuration/better_player_buffering_configuration.dart';
-import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
+
+import 'package:equatable/equatable.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:xstream_player/src/configuration/better_player_buffering_configuration.dart';
+import 'package:xstream_player/src/configuration/better_player_track.dart';
+import 'package:xstream_player/src/core/better_player_utils.dart';
+import 'package:xstream_player/src/video_player/video_player_platform_interface.dart';
 
 final VideoPlayerPlatform _videoPlayerPlatform = VideoPlayerPlatform.instance
   // This will clear all open videos on the platform when a full restart is
@@ -17,15 +21,16 @@ final VideoPlayerPlatform _videoPlayerPlatform = VideoPlayerPlatform.instance
 
 /// The duration, current position, buffering state, error state and settings
 /// of a [VideoPlayerController].
-class VideoPlayerValue {
+class VideoPlayerValue extends Equatable {
   /// Constructs a video with the given values. Only [duration] is required. The
   /// rest will initialize with default values when unset.
-  VideoPlayerValue({
+  const VideoPlayerValue({
     required this.duration,
     this.size,
     this.position = Duration.zero,
     this.absolutePosition,
     this.buffered = const <DurationRange>[],
+    this.tracks,
     this.isPlaying = false,
     this.isLooping = false,
     this.isBuffering = false,
@@ -36,11 +41,11 @@ class VideoPlayerValue {
   });
 
   /// Returns an instance with a `null` [Duration].
-  VideoPlayerValue.uninitialized() : this(duration: null);
+  const VideoPlayerValue.uninitialized() : this(duration: null);
 
   /// Returns an instance with a `null` [Duration] and the given
   /// [errorDescription].
-  VideoPlayerValue.erroneous(String errorDescription) : this(duration: null, errorDescription: errorDescription);
+  const VideoPlayerValue.erroneous(String errorDescription) : this(duration: null, errorDescription: errorDescription);
 
   /// The total duration of the video.
   ///
@@ -57,6 +62,9 @@ class VideoPlayerValue {
 
   /// The currently buffered ranges.
   final List<DurationRange> buffered;
+
+  /// tracks of the video
+  final List<BetterPlayerTrack>? tracks;
 
   /// True if the video is playing. False if it's paused.
   final bool isPlaying;
@@ -121,6 +129,7 @@ class VideoPlayerValue {
     String? errorDescription,
     double? speed,
     bool? isPip,
+    List<BetterPlayerTrack>? tracks,
   }) => VideoPlayerValue(
     duration: duration ?? this.duration,
     size: size ?? this.size,
@@ -134,11 +143,12 @@ class VideoPlayerValue {
     speed: speed ?? this.speed,
     errorDescription: errorDescription ?? this.errorDescription,
     isPip: isPip ?? this.isPip,
+    tracks: tracks ?? this.tracks,
   );
 
   @override
   String toString() =>
-      'VideoPlayerValue('
+      '$runtimeType('
       'duration: $duration, '
       'size: $size, '
       'position: $position, '
@@ -149,6 +159,23 @@ class VideoPlayerValue {
       'isBuffering: $isBuffering, '
       'volume: $volume, '
       'errorDescription: $errorDescription)';
+
+  @override
+  List<Object?> get props => [
+    duration,
+    size,
+    position,
+    absolutePosition,
+    buffered,
+    isPlaying,
+    isLooping,
+    isBuffering,
+    volume,
+    speed,
+    errorDescription,
+    isPip,
+    tracks,
+  ];
 }
 
 /// Controls a platform video player, and provides updates when the state is
@@ -166,7 +193,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   VideoPlayerController({
     this.bufferingConfiguration = const BetterPlayerBufferingConfiguration(),
     bool autoCreate = true,
-  }) : super(VideoPlayerValue(duration: null)) {
+  }) : super(const VideoPlayerValue(duration: null)) {
     if (autoCreate) {
       _create();
     }
@@ -233,6 +260,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isPip: false);
         case VideoEventType.unknown:
           break;
+        case VideoEventType.isPlayingChanged:
+          value = value.copyWith(isPlaying: event.isPlaying);
+        case VideoEventType.videoSizeChanged:
+          value = value.copyWith(size: event.size);
+        case VideoEventType.videoAnalytics:
+          break;
+        case VideoEventType.trackChanged:
+          BetterPlayerUtils.log('trackChanged: ${event.tracks}');
+          value = value.copyWith(tracks: event.tracks);
       }
     }
 
@@ -310,6 +346,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     String? activityName,
     String? clearKey,
     String? videoExtension,
+    String? sig,
+    Map<String, int>? videoConstraint,
   }) => _setDataSource(
     DataSource(
       sourceType: DataSourceType.network,
@@ -332,6 +370,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       activityName: activityName,
       clearKey: clearKey,
       videoExtension: videoExtension,
+      sig: sig,
+      videoConstraint: videoConstraint,
     ),
   );
 
@@ -386,7 +426,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     await _creatingCompleter.future;
     if (!_isDisposed) {
       _isDisposed = true;
-      value = VideoPlayerValue.uninitialized();
+      value = const VideoPlayerValue.uninitialized();
       _timer?.cancel();
       await _eventSubscription?.cancel();
       await _videoPlayerPlatform.dispose(_textureId);
@@ -553,6 +593,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [bitrate] specifies bitrate of the selected track
   Future<void> setTrackParameters(int? width, int? height, int? bitrate) async {
     await _videoPlayerPlatform.setTrackParameters(_textureId, width, height, bitrate);
+  }
+
+  /// Sets the video track constraint of [this]
+  ///
+  /// [width] specifies width of the selected track
+  /// [height] specifies height of the selected track
+  /// [bitrate] specifies bitrate of the selected track
+  Future<void> setTrackConstraint(int? width, int? height, int? bitrate) async {
+    await _videoPlayerPlatform.setTrackConstraint(_textureId, width, height, bitrate);
   }
 
   Future<void> enablePictureInPicture({double? top, double? left, double? width, double? height}) async {

@@ -1,6 +1,7 @@
-import 'package:better_player_plus/src/asms/better_player_asms_subtitle_segment.dart';
+import 'package:xstream_player/src/asms/better_player_asms_subtitle_segment.dart';
 
-import 'package:better_player_plus/src/subtitles/better_player_subtitles_source_type.dart';
+import 'package:xstream_player/xstream_player.dart'
+    show BetterPlayerSubtitlesSourceType;
 
 ///Representation of subtitles source. Used to define subtitles in Better
 /// Player.
@@ -56,14 +57,15 @@ class BetterPlayerSubtitlesSource {
     String? content,
     bool? selectedByDefault,
     Map<String, String>? headers,
-  }) => [
-    BetterPlayerSubtitlesSource(
-      type: type,
-      name: name,
-      urls: [url],
-      content: content,
-      selectedByDefault: selectedByDefault,
-      headers: headers,
-    ),
-  ];
+  }) =>
+      [
+        BetterPlayerSubtitlesSource(
+          type: type,
+          name: name,
+          urls: [url],
+          content: content,
+          selectedByDefault: selectedByDefault,
+          headers: headers,
+        ),
+      ];
 }

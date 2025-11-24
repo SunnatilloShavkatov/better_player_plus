@@ -1,5 +1,5 @@
+import 'package:xstream_player/xstream_player.dart';
 import 'package:better_player_example/constants.dart';
-import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 
 class RotationAndFitPage extends StatefulWidget {
@@ -25,17 +25,27 @@ class _RotationAndFitPageState extends State<RotationAndFitPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Rotation and fit')),
-    body: Column(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('Player with different rotation and fit.', style: TextStyle(fontSize: 16)),
-        ),
-        AspectRatio(aspectRatio: 1, child: BetterPlayer(controller: _betterPlayerController)),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Rotation and fit"),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "Player with different rotation and fit.",
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          AspectRatio(
+            aspectRatio: 1.0,
+            child: BetterPlayer(controller: _betterPlayerController),
+          ),
+        ],
+      ),
+    );
+  }
 }

@@ -1,13 +1,13 @@
 import 'dart:async';
-import 'package:better_player_plus/src/configuration/better_player_controls_configuration.dart';
-import 'package:better_player_plus/src/controls/better_player_clickable_widget.dart';
-import 'package:better_player_plus/src/controls/better_player_controls_state.dart';
-import 'package:better_player_plus/src/controls/better_player_material_progress_bar.dart';
-import 'package:better_player_plus/src/controls/better_player_multiple_gesture_detector.dart';
-import 'package:better_player_plus/src/controls/better_player_progress_colors.dart';
-import 'package:better_player_plus/src/core/better_player_controller.dart';
-import 'package:better_player_plus/src/core/better_player_utils.dart';
-import 'package:better_player_plus/src/video_player/video_player.dart';
+import 'package:xstream_player/src/configuration/better_player_controls_configuration.dart';
+import 'package:xstream_player/src/controls/better_player_clickable_widget.dart';
+import 'package:xstream_player/src/controls/better_player_controls_state.dart';
+import 'package:xstream_player/src/controls/better_player_material_progress_bar.dart';
+import 'package:xstream_player/src/controls/better_player_multiple_gesture_detector.dart';
+import 'package:xstream_player/src/controls/better_player_progress_colors.dart';
+import 'package:xstream_player/src/core/better_player_controller.dart';
+import 'package:xstream_player/src/core/better_player_utils.dart';
+import 'package:xstream_player/src/video_player/video_player.dart';
 
 // Flutter imports:
 import 'package:flutter/material.dart';

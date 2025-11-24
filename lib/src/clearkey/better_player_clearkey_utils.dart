@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'dart:typed_data';
 
+import 'package:crypto/crypto.dart';
+
 ///ClearKey helper class to generate the key
 class BetterPlayerClearKeyUtils {
   const BetterPlayerClearKeyUtils._();
@@ -33,5 +35,15 @@ class BetterPlayerClearKeyUtils {
       passedNumber = passedNumber >> 8;
     }
     return result;
+  }
+
+  static String computeHmacSha256Base64(String key, String data) {
+    final keyBytes = utf8.encode(key); // Convert key to bytes
+    final dataBytes = utf8.encode(data); // Convert data to bytes
+
+    final hmacSha256 = Hmac(sha256, keyBytes); // Create Hmac instance
+    final digest = hmacSha256.convert(dataBytes); // Compute HMAC
+
+    return base64UrlEncode(digest.bytes).replaceAll("=", "");
   }
 }

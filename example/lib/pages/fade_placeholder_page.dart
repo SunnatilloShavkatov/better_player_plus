@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:xstream_player/xstream_player.dart';
 import 'package:better_player_example/constants.dart';
-import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 
 class FadePlaceholderPage extends StatefulWidget {
@@ -38,36 +38,48 @@ class _FadePlaceholderPageState extends State<FadePlaceholderPage> {
     super.initState();
   }
 
-  Widget _buildPlaceholder() => StreamBuilder<bool>(
-    stream: _playController.stream,
-    builder: (context, snapshot) {
-      final bool showPlaceholder = snapshot.data ?? true;
-      return AnimatedOpacity(
-        duration: const Duration(milliseconds: 500),
-        opacity: showPlaceholder ? 1.0 : 0.0,
-        child: AspectRatio(
-          aspectRatio: 16 / 9,
-          child: Image.network(Constants.catImageUrl, fit: BoxFit.fill),
-        ),
-      );
-    },
-  );
+  Widget _buildPlaceholder() {
+    return StreamBuilder<bool>(
+      stream: _playController.stream,
+      builder: (context, snapshot) {
+        bool showPlaceholder = snapshot.data ?? true;
+        return AnimatedOpacity(
+          duration: Duration(milliseconds: 500),
+          opacity: showPlaceholder ? 1.0 : 0.0,
+          child: AspectRatio(
+            aspectRatio: 16 / 9,
+            child: Image.network(
+              Constants.catImageUrl,
+              fit: BoxFit.fill,
+            ),
+          ),
+        );
+      },
+    );
+  }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Fade placeholder player')),
-    body: Column(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text('Normal player with placeholder which fade.', style: TextStyle(fontSize: 16)),
-        ),
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: BetterPlayer(controller: _betterPlayerController),
-        ),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Fade placeholder player"),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "Normal player with placeholder which fade.",
+              style: TextStyle(fontSize: 16),
+            ),
+          ),
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: BetterPlayer(controller: _betterPlayerController),
+          ),
+        ],
+      ),
+    );
+  }
 }

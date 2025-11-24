@@ -1,5 +1,5 @@
-import 'package:better_player_plus/src/hls/hls_parser/exception.dart';
-import 'package:better_player_plus/src/hls/hls_parser/mime_types.dart';
+import 'package:xstream_player/src/hls/hls_parser/exception.dart';
+import 'package:xstream_player/src/hls/hls_parser/mime_types.dart';
 
 class LibUtil {
   const LibUtil._();

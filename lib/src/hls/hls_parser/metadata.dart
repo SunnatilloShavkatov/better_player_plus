@@ -1,4 +1,4 @@
-import 'package:better_player_plus/src/hls/hls_parser/hls_track_metadata_entry.dart';
+import 'package:xstream_player/src/hls/hls_parser/hls_track_metadata_entry.dart';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 

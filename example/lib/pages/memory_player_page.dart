@@ -1,8 +1,8 @@
 import 'dart:io';
 
+import 'package:xstream_player/xstream_player.dart';
 import 'package:better_player_example/constants.dart';
 import 'package:better_player_example/utils.dart';
-import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 
 class MemoryPlayerPage extends StatefulWidget {
@@ -37,24 +37,28 @@ class _MemoryPlayerPageState extends State<MemoryPlayerPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Memory player')),
-    body: Column(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Memory player with plays video from bytes list. In this example'
-            'file bytes are read to list and then used in player.',
-            style: TextStyle(fontSize: 16),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Memory player"),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "Memory player with plays video from bytes list. In this example"
+              "file bytes are read to list and then used in player.",
+              style: TextStyle(fontSize: 16),
+            ),
           ),
-        ),
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: BetterPlayer(controller: _betterPlayerController),
-        ),
-      ],
-    ),
-  );
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: BetterPlayer(controller: _betterPlayerController),
+          ),
+        ],
+      ),
+    );
+  }
 }

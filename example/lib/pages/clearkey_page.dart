@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:better_player_example/constants.dart';
 import 'package:better_player_example/utils.dart';
-import 'package:better_player_plus/better_player_plus.dart';
+import 'package:xstream_player/xstream_player.dart';
 import 'package:flutter/material.dart';
 
 class ClearKeyPage extends StatefulWidget {
@@ -94,50 +94,66 @@ class _ClearKeyState extends State<ClearKeyPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('ClearKey DRM')),
-    body: SingleChildScrollView(
-      child: Column(
-        children: [
-          const SizedBox(height: 8),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('ClearKey Protection  with valid key.', style: TextStyle(fontSize: 16)),
-          ),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: BetterPlayer(controller: _clearKeyControllerFile),
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('ClearKey Protection with invalid key.', style: TextStyle(fontSize: 16)),
-          ),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: BetterPlayer(controller: _clearKeyControllerBroken),
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('ClearKey Protection Network with valid key.', style: TextStyle(fontSize: 16)),
-          ),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: BetterPlayer(controller: _clearKeyControllerNetwork),
-          ),
-          const SizedBox(height: 16),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 16),
-            child: Text('ClearKey Protection Asset with valid key.', style: TextStyle(fontSize: 16)),
-          ),
-          AspectRatio(
-            aspectRatio: 16 / 9,
-            child: BetterPlayer(controller: _clearKeyControllerMemory),
-          ),
-          const SizedBox(height: 100),
-        ],
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("ClearKey DRM"),
       ),
-    ),
-  );
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "ClearKey Protection  with valid key.",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: BetterPlayer(controller: _clearKeyControllerFile),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "ClearKey Protection with invalid key.",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: BetterPlayer(controller: _clearKeyControllerBroken),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "ClearKey Protection Network with valid key.",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: BetterPlayer(controller: _clearKeyControllerNetwork),
+            ),
+            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "ClearKey Protection Asset with valid key.",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: BetterPlayer(controller: _clearKeyControllerMemory),
+            ),
+            const SizedBox(height: 100),
+          ],
+        ),
+      ),
+    );
+  }
 }

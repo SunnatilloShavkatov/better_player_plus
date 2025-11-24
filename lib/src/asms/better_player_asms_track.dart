@@ -1,8 +1,7 @@
-import 'package:flutter/foundation.dart';
+import 'package:equatable/equatable.dart';
 
 /// Represents HLS / DASH track which can be played within player
-@immutable
-class BetterPlayerAsmsTrack {
+class BetterPlayerAsmsTrack extends Equatable {
   const BetterPlayerAsmsTrack(
     this.id,
     this.width,
@@ -11,9 +10,10 @@ class BetterPlayerAsmsTrack {
     this.frameRate,
     this.codecs,
     this.mimeType,
+    this.audioGroupId,
   );
 
-  factory BetterPlayerAsmsTrack.defaultTrack() => const BetterPlayerAsmsTrack('', 0, 0, 0, 0, '', '');
+  factory BetterPlayerAsmsTrack.defaultTrack() => const BetterPlayerAsmsTrack('', 0, 0, 0, 0, '', '', '');
 
   ///Id of the track
   final String? id;
@@ -36,16 +36,9 @@ class BetterPlayerAsmsTrack {
   ///mimeType of the video track
   final String? mimeType;
 
-  @override
-  bool operator ==(Object other) =>
-      other is BetterPlayerAsmsTrack &&
-      width == other.width &&
-      height == other.height &&
-      bitrate == other.bitrate &&
-      frameRate == other.frameRate &&
-      codecs == other.codecs &&
-      mimeType == other.mimeType;
+  ///audio group id of the video track
+  final String? audioGroupId;
 
   @override
-  int get hashCode => Object.hash(id, width, height, bitrate, frameRate, codecs, mimeType);
+  List<Object?> get props => [id, width, height, bitrate, frameRate, codecs, mimeType, audioGroupId];
 }

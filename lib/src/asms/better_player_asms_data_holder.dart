@@ -1,6 +1,6 @@
-import 'package:better_player_plus/src/asms/better_player_asms_audio_track.dart';
-import 'package:better_player_plus/src/asms/better_player_asms_subtitle.dart';
-import 'package:better_player_plus/src/asms/better_player_asms_track.dart';
+import 'package:xstream_player/src/asms/better_player_asms_audio_track.dart';
+import 'package:xstream_player/src/asms/better_player_asms_subtitle.dart';
+import 'package:xstream_player/src/asms/better_player_asms_track.dart';
 
 class BetterPlayerAsmsDataHolder {
   BetterPlayerAsmsDataHolder({this.tracks, this.subtitles, this.audios});

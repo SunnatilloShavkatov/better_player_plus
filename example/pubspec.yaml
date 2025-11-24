@@ -8,7 +8,7 @@ environment:
   flutter: ">=3.35.0"
 
 dependencies:
-  better_player_plus:
+  xstream_player:
     path: ../
   flutter:
     sdk: flutter

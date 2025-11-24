@@ -1,4 +1,4 @@
-import 'package:better_player_plus/src/hls/hls_parser/util.dart';
+import 'package:xstream_player/src/hls/hls_parser/util.dart';
 
 class MimeTypes {
   const MimeTypes._();
@@ -61,12 +61,14 @@ class MimeTypes {
   static const String applicationTtml = '$baseTypeApplication/ttml+xml';
   static const String applicationTx3g = '$baseTypeApplication/x-quicktime-tx3g';
   static const String applicationMp4vtt = '$baseTypeApplication/x-mp4-vtt';
-  static const String applicationMp4cea608 = '$baseTypeApplication/x-mp4-cea-608';
+  static const String applicationMp4cea608 =
+      '$baseTypeApplication/x-mp4-cea-608';
   static const String applicationRawcc = '$baseTypeApplication/x-rawcc';
   static const String applicationVobsub = '$baseTypeApplication/vobsub';
   static const String applicationPgs = '$baseTypeApplication/pgs';
   static const String applicationScte35 = '$baseTypeApplication/x-scte35';
-  static const String applicationCameraMotion = '$baseTypeApplication/x-camera-motion';
+  static const String applicationCameraMotion =
+      '$baseTypeApplication/x-camera-motion';
   static const String applicationEmsg = '$baseTypeApplication/x-emsg';
   static const String applicationDvbsubs = '$baseTypeApplication/dvbsubs';
   static const String applicationExif = '$baseTypeApplication/x-exif';
@@ -136,7 +138,10 @@ class MimeTypes {
       return MimeTypes.videoH265;
     }
 
-    if (codec.startsWith('dvav') || codec.startsWith('dva1') || codec.startsWith('dvhe') || codec.startsWith('dvh1')) {
+    if (codec.startsWith('dvav') ||
+        codec.startsWith('dva1') ||
+        codec.startsWith('dvhe') ||
+        codec.startsWith('dvh1')) {
       return MimeTypes.videoDolbyVision;
     }
 
@@ -156,7 +161,8 @@ class MimeTypes {
         final String objectTypeString = codec.substring(5);
         if (objectTypeString.length >= 2) {
           try {
-            final String objectTypeHexString = objectTypeString.substring(0, 2).toUpperCase();
+            final String objectTypeHexString =
+                objectTypeString.substring(0, 2).toUpperCase();
             final int objectTypeInt = int.parse(objectTypeHexString, radix: 16);
             mimeType = _getMimeTypeFromMp4ObjectType(objectTypeInt);
           } on FormatException {
@@ -236,7 +242,9 @@ class MimeTypes {
         applicationPgs == mimeType ||
         applicationDvbsubs == mimeType) {
       return Util.trackTypeText;
-    } else if ((applicationId3 == mimeType) || (applicationEmsg == mimeType) || (applicationScte35 == mimeType)) {
+    } else if ((applicationId3 == mimeType) ||
+        (applicationEmsg == mimeType) ||
+        (applicationScte35 == mimeType)) {
       return Util.trackTypeMetadata;
     } else if (applicationCameraMotion == mimeType) {
       return Util.trackTypeCameraMotion;
@@ -266,17 +274,24 @@ class MimeTypes {
     return mimeType.substring(0, indexOfSlash);
   }
 
-  static bool isAudio(String? mimeType) => baseTypeAudio == getTopLevelType(mimeType);
+  static bool isAudio(String? mimeType) =>
+      baseTypeAudio == getTopLevelType(mimeType);
 
-  static bool isVideo(String? mimeType) => baseTypeVideo == getTopLevelType(mimeType);
+  static bool isVideo(String? mimeType) =>
+      baseTypeVideo == getTopLevelType(mimeType);
 
-  static bool isText(String? mimeType) => baseTypeText == getTopLevelType(mimeType);
+  static bool isText(String? mimeType) =>
+      baseTypeText == getTopLevelType(mimeType);
 
-  static int getTrackTypeOfCodec(String codec) => getTrackType(getMediaMimeType(codec));
+  static int getTrackTypeOfCodec(String codec) =>
+      getTrackType(getMediaMimeType(codec));
 }
 
 class CustomMimeType {
-  CustomMimeType({required this.mimeType, required this.codecPrefix, required this.trackType});
+  CustomMimeType(
+      {required this.mimeType,
+      required this.codecPrefix,
+      required this.trackType});
 
   final String mimeType;
   final String codecPrefix;

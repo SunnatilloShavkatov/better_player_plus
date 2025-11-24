@@ -1,14 +1,15 @@
 import 'dart:async';
-import 'package:better_player_plus/src/configuration/better_player_controls_configuration.dart';
-import 'package:better_player_plus/src/controls/better_player_controls_state.dart';
-import 'package:better_player_plus/src/controls/better_player_cupertino_progress_bar.dart';
-import 'package:better_player_plus/src/controls/better_player_multiple_gesture_detector.dart';
-import 'package:better_player_plus/src/controls/better_player_progress_colors.dart';
-import 'package:better_player_plus/src/core/better_player_controller.dart';
-import 'package:better_player_plus/src/core/better_player_utils.dart';
-import 'package:better_player_plus/src/video_player/video_player.dart';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:xstream_player/src/configuration/better_player_controls_configuration.dart';
+import 'package:xstream_player/src/controls/better_player_controls_state.dart';
+import 'package:xstream_player/src/controls/better_player_cupertino_progress_bar.dart';
+import 'package:xstream_player/src/controls/better_player_multiple_gesture_detector.dart';
+import 'package:xstream_player/src/controls/better_player_progress_colors.dart';
+import 'package:xstream_player/src/core/better_player_controller.dart';
+import 'package:xstream_player/src/core/better_player_utils.dart';
+import 'package:xstream_player/src/video_player/video_player.dart';
 
 class BetterPlayerCupertinoControls extends StatefulWidget {
   const BetterPlayerCupertinoControls({
@@ -261,7 +262,7 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
       duration: _controlsConfiguration.controlsHideTime,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
-        child: DecoratedBox(
+        child: Container(
           decoration: BoxDecoration(color: backgroundColor),
           child: Container(
             height: barHeight,
@@ -296,7 +297,7 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
       duration: _controlsConfiguration.controlsHideTime,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(10),
-        child: DecoratedBox(
+        child: Container(
           decoration: BoxDecoration(color: backgroundColor),
           child: Container(
             height: barHeight,
@@ -432,7 +433,7 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Text(
-                  '${_betterPlayerController!.translations.controlsNextVideoIn} $time ...',
+                  "${_betterPlayerController!.translations.controlsNextVideoIn} $time ...",
                   style: const TextStyle(color: Colors.white),
                 ),
               ),
@@ -619,7 +620,7 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
               child: Container(
                 height: barHeight,
                 padding: EdgeInsets.only(left: buttonPadding, right: buttonPadding),
-                decoration: BoxDecoration(color: backgroundColor.withValues(alpha: 0.5)),
+                decoration: BoxDecoration(color: backgroundColor.withValues(alpha: 0.5 * 255)),
                 child: Center(
                   child: Icon(_controlsConfiguration.pipMenuIcon, color: iconColor, size: iconSize),
                 ),

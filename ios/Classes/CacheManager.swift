@@ -58,7 +58,7 @@ import PINCache
         
         let _key: String = cacheKey ?? url.absoluteString
         // Make sure the item is not already being downloaded
-        if self._preCachedURLs[_key] == nil {            
+        if self._preCachedURLs[_key] == nil {
             if let item = self.getCachingPlayerItem(url, cacheKey: _key, videoExtension: videoExtension, headers: headers){
                 if !self._existsInStorage {
                     self._preCachedURLs[_key] = item

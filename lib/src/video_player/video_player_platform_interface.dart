@@ -6,11 +6,12 @@
 import 'dart:async';
 
 // Flutter imports:
-import 'package:better_player_plus/src/configuration/better_player_buffering_configuration.dart';
-import 'package:better_player_plus/src/video_player/method_channel_video_player.dart';
-import 'package:better_player_plus/src/video_player/video_player.dart' show VideoPlayerController;
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
+import 'package:xstream_player/src/configuration/better_player_buffering_configuration.dart';
+import 'package:xstream_player/src/configuration/better_player_track.dart';
+import 'package:xstream_player/src/video_player/method_channel_video_player.dart';
 
 /// The interface that implementations of video_player must implement.
 ///
@@ -28,7 +29,7 @@ abstract class VideoPlayerPlatform {
   @visibleForTesting
   bool get isMock => false;
 
-  static VideoPlayerPlatform _instance = MethodChannelVideoPlayer();
+  static VideoPlayerPlatform _instance = MethodChannelVideoPlayer() as VideoPlayerPlatform;
 
   /// The default instance of [VideoPlayerPlatform] to use.
   ///
@@ -118,6 +119,11 @@ abstract class VideoPlayerPlatform {
   /// Sets the video track parameters (used to select quality of the video)
   Future<void> setTrackParameters(int? textureId, int? width, int? height, int? bitrate) {
     throw UnimplementedError('setTrackParameters() has not been implemented.');
+  }
+
+  /// Sets the video track constraint
+  Future<void> setTrackConstraint(int? textureId, int? width, int? height, int? bitrate) {
+    throw UnimplementedError('setTrackConstraint() has not been implemented.');
   }
 
   /// Sets the video position to a [Duration] from the start.
@@ -215,7 +221,11 @@ class DataSource {
     this.activityName,
     this.clearKey,
     this.videoExtension,
-  }) : assert(uri == null || asset == null, 'You can provide uri or asset but not both.');
+    this.sig,
+    this.videoConstraint,
+  })
+    // ignore: prefer_asserts_with_message
+    : assert(uri == null || asset == null);
 
   /// The maximum cache size to keep on disk in bytes.
   static const int _maxCacheSize = 100 * 1024 * 1024;
@@ -298,6 +308,8 @@ class DataSource {
   final String? clearKey;
 
   final String? videoExtension;
+  final String? sig;
+  final Map<String, int>? videoConstraint;
 
   /// Key to compare DataSource
   String get key {
@@ -373,6 +385,9 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.position,
+    this.metadata,
+    this.tracks,
+    this.isPlaying,
   });
 
   /// The type of the event.
@@ -398,8 +413,18 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.bufferingUpdate].
   final List<DurationRange>? buffered;
 
+  ///ABR Tracks of the video
+  ///
+  /// Only used if [eventType] is [VideoEventType.trackChanged].
+  final List<BetterPlayerTrack>? tracks;
+
   ///Seek position
   final Duration? position;
+
+  ///isPlaying
+  final bool? isPlaying;
+
+  final Map<dynamic, dynamic>? metadata; // <String, dynamic>
 
   @override
   bool operator ==(Object other) =>
@@ -410,10 +435,20 @@ class VideoEvent {
           eventType == other.eventType &&
           duration == other.duration &&
           size == other.size &&
-          listEquals(buffered, other.buffered);
+          isPlaying == other.isPlaying &&
+          mapEquals(metadata, other.metadata) &&
+          listEquals(buffered, other.buffered) &&
+          listEquals(tracks, other.tracks);
 
   @override
-  int get hashCode => eventType.hashCode ^ duration.hashCode ^ size.hashCode ^ buffered.hashCode;
+  int get hashCode =>
+      eventType.hashCode ^
+      duration.hashCode ^
+      size.hashCode ^
+      buffered.hashCode ^
+      metadata.hashCode ^
+      isPlaying.hashCode ^
+      tracks.hashCode;
 }
 
 /// Type of the event.
@@ -436,6 +471,15 @@ enum VideoEventType {
   /// The video stopped to buffer.
   bufferingEnd,
 
+  /// Playing state changed
+  isPlayingChanged,
+
+  /// Video size changed
+  videoSizeChanged,
+
+  /// Track changed
+  trackChanged,
+
   /// The video is set to play
   play,
 
@@ -451,14 +495,16 @@ enum VideoEventType {
   /// Picture in picture mode has been dismissed
   pipStop,
 
+  /// Video Analytics event
+  videoAnalytics,
+
   /// An unknown event has been received.
   unknown,
 }
 
 /// Describes a discrete segment of time within a video using a [start] and
 /// [end] [Duration].
-@immutable
-class DurationRange {
+class DurationRange extends Equatable {
   /// Trusts that the given [start] and [end] are actually in order. They should
   /// both be non-null.
   const DurationRange(this.start, this.end);
@@ -500,10 +546,5 @@ class DurationRange {
   String toString() => 'DurationRange(start: $start, end: $end)';
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is DurationRange && runtimeType == other.runtimeType && start == other.start && end == other.end;
-
-  @override
-  int get hashCode => start.hashCode ^ end.hashCode;
+  List<Object?> get props => [start, end];
 }

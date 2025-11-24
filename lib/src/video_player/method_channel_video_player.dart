@@ -1,13 +1,13 @@
 // ignore_for_file: avoid_annotating_with_dynamic
 
 import 'dart:async';
-
-import 'package:better_player_plus/src/configuration/better_player_buffering_configuration.dart';
-import 'package:better_player_plus/src/core/better_player_utils.dart';
-import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
+import 'package:xstream_player/src/configuration/better_player_buffering_configuration.dart';
+import 'package:xstream_player/src/configuration/better_player_track.dart';
+import 'package:xstream_player/src/core/better_player_utils.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:xstream_player/src/video_player/video_player_platform_interface.dart';
 
 const MethodChannel _channel = MethodChannel('better_player_channel');
 
@@ -80,6 +80,8 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           'activityName': dataSource.activityName,
           'clearKey': dataSource.clearKey,
           'videoExtension': dataSource.videoExtension,
+          'sig': dataSource.sig,
+          'videoConstraint': dataSource.videoConstraint,
         };
       case DataSourceType.file:
         dataSourceDescription = <String, dynamic>{
@@ -124,10 +126,24 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
       _channel.invokeMethod<void>('setSpeed', <String, dynamic>{'textureId': textureId, 'speed': speed});
 
   @override
-  Future<void> setTrackParameters(int? textureId, int? width, int? height, int? bitrate) => _channel.invokeMethod<void>(
-    'setTrackParameters',
-    <String, dynamic>{'textureId': textureId, 'width': width, 'height': height, 'bitrate': bitrate},
-  );
+  Future<void> setTrackParameters(int? textureId, int? width, int? height, int? bitrate) {
+    return _channel.invokeMethod<void>('setTrackParameters', <String, dynamic>{
+      'textureId': textureId,
+      'width': width,
+      'height': height,
+      'bitrate': bitrate,
+    });
+  }
+
+  @override
+  Future<void> setTrackConstraint(int? textureId, int? width, int? height, int? bitrate) {
+    return _channel.invokeMethod<void>('setTrackParameters', <String, dynamic>{
+      'textureId': textureId,
+      'width': width,
+      'height': height,
+      'bitrate': bitrate,
+    });
+  }
 
   @override
   Future<void> seekTo(int? textureId, Duration? position) => _channel.invokeMethod<void>('seekTo', <String, dynamic>{
@@ -240,6 +256,29 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
               duration: Duration(milliseconds: map['duration'] as int),
               size: size,
             );
+          case 'videoSizeChanged':
+            double width = 0;
+            double height = 0;
+
+            try {
+              if (map.containsKey("width")) {
+                final num widthNum = map["width"] as num;
+                width = widthNum.toDouble();
+              }
+              if (map.containsKey("height")) {
+                final num heightNum = map["height"] as num;
+                height = heightNum.toDouble();
+              }
+            } on Exception catch (exception) {
+              BetterPlayerUtils.log(exception.toString());
+            }
+
+            final Size size = Size(width, height);
+
+            return VideoEvent(eventType: VideoEventType.videoSizeChanged, key: key, size: size);
+          case 'isPlayingChanged':
+            final bool isPlaying = map["isPlaying"] as bool;
+            return VideoEvent(eventType: VideoEventType.isPlayingChanged, key: key, isPlaying: isPlaying);
           case 'completed':
             return VideoEvent(eventType: VideoEventType.completed, key: key);
           case 'bufferingUpdate':
@@ -273,7 +312,14 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
 
           case 'pipStop':
             return VideoEvent(eventType: VideoEventType.pipStop, key: key);
-
+          case 'analytics':
+            return VideoEvent(eventType: VideoEventType.videoAnalytics, key: key, metadata: map);
+          case 'tracksChanged':
+            return VideoEvent(
+              eventType: VideoEventType.trackChanged,
+              key: key,
+              tracks: BetterPlayerTrack.tracksFromJson(map['tracks']),
+            );
           default:
             return VideoEvent(eventType: VideoEventType.unknown, key: key);
         }

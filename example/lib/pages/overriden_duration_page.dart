@@ -1,5 +1,5 @@
+import 'package:xstream_player/xstream_player.dart';
 import 'package:better_player_example/constants.dart';
-import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 
 class OverriddenDurationPage extends StatefulWidget {
@@ -35,24 +35,28 @@ class _OverriddenDurationPageState extends State<OverriddenDurationPage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: const Text('Overridden duration')),
-    body: Column(
-      children: [
-        const SizedBox(height: 8),
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: Text(
-            'Duration of this video is overridden. Now this video will have'
-            ' 10 seconds only.',
-            style: TextStyle(fontSize: 16),
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("Overridden duration"),
+      ),
+      body: Column(
+        children: [
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              "Duration of this video is overridden. Now this video will have"
+              " 10 seconds only.",
+              style: TextStyle(fontSize: 16),
+            ),
           ),
-        ),
-        AspectRatio(
-          aspectRatio: 16 / 9,
-          child: BetterPlayer(controller: _betterPlayerController),
-        ),
-      ],
-    ),
-  );
+          AspectRatio(
+            aspectRatio: 16 / 9,
+            child: BetterPlayer(controller: _betterPlayerController),
+          ),
+        ],
+      ),
+    );
+  }
 }

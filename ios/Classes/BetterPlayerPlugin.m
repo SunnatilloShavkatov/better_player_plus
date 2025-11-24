@@ -1,8 +1,8 @@
 #import "BetterPlayerPlugin.h"
-#if __has_include(<better_player_plus/better_player_plus-Swift.h>)
-#import <better_player_plus/better_player_plus-Swift.h>
+#if __has_include(<xstream_player/xstream_player-Swift.h>)
+#import <xstream_player/xstream_player-Swift.h>
 #else
-#import "better_player_plus-Swift.h"
+#import "xstream_player-Swift.h"
 #endif
 
 @implementation BetterPlayerPlugin

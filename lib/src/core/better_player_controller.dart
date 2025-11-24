@@ -1,16 +1,18 @@
+// ignore_for_file: flutter_style_todos
+
 import 'dart:async';
 import 'dart:io';
 
-import 'package:better_player_plus/better_player_plus.dart';
-import 'package:better_player_plus/src/configuration/better_player_controller_event.dart';
-import 'package:better_player_plus/src/core/better_player_utils.dart';
-import 'package:better_player_plus/src/subtitles/better_player_subtitle.dart';
-import 'package:better_player_plus/src/subtitles/better_player_subtitles_factory.dart';
-import 'package:better_player_plus/src/video_player/video_player.dart';
-import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:xstream_player/src/configuration/better_player_controller_event.dart';
+import 'package:xstream_player/src/core/better_player_utils.dart';
+import 'package:xstream_player/src/subtitles/better_player_subtitle.dart';
+import 'package:xstream_player/src/subtitles/better_player_subtitles_factory.dart';
+import 'package:xstream_player/src/video_player/video_player.dart';
+import 'package:xstream_player/src/video_player/video_player_platform_interface.dart';
+import 'package:xstream_player/xstream_player.dart';
 
 ///Class used to control overall Better Player behavior. Main class to change
 ///state of Better Player.
@@ -26,7 +28,6 @@ class BetterPlayerController {
       setupDataSource(betterPlayerDataSource);
     }
   }
-
   static const String _durationParameter = 'duration';
   static const String _progressParameter = 'progress';
   static const String _bufferedParameter = 'buffered';
@@ -47,6 +48,9 @@ class BetterPlayerController {
   ///List of files to delete once player disposes.
   final List<File> _tempFiles = [];
 
+  ///Stream controller which emits stream when player events happen.
+  final StreamController<Map<dynamic, dynamic>> _controllerAnalytics = StreamController.broadcast();
+
   ///Stream controller which emits stream when control visibility changes.
   final StreamController<bool> _controlsVisibilityStreamController = StreamController.broadcast();
 
@@ -61,10 +65,10 @@ class BetterPlayerController {
   BetterPlayerControlsConfiguration get betterPlayerControlsConfiguration => _betterPlayerControlsConfiguration;
 
   ///Expose all active eventListeners
-  List<void Function(BetterPlayerEvent)?> get eventListeners => _eventListeners.sublist(1);
+  List<Function(BetterPlayerEvent)?> get eventListeners => _eventListeners.sublist(1);
 
   /// Defines a event listener where video player events will be send.
-  void Function(BetterPlayerEvent)? get eventListener => betterPlayerConfiguration.eventListener;
+  Function(BetterPlayerEvent)? get eventListener => betterPlayerConfiguration.eventListener;
 
   ///Flag used to store full screen mode state.
   bool _isFullScreen = false;
@@ -102,6 +106,24 @@ class BetterPlayerController {
 
   ///Currently selected player track. Used only for HLS / DASH.
   BetterPlayerAsmsTrack? _betterPlayerAsmsTrack;
+
+  ///Currently selected native player track(video). Used only for HLS / DASH.
+  BetterPlayerTrack? _videoPlayerTrack;
+
+  ///Currently selected native player track(audio). Used only for HLS / DASH.
+  BetterPlayerTrack? _audioPlayerTrack;
+
+  ///Currently selected native player track(subtitle). Used only for HLS / DASH.
+  BetterPlayerTrack? _subtitlePlayerTrack;
+
+  ///Currently selected native player track(video). Used only for HLS / DASH.
+  BetterPlayerTrack? get videoPlayerTrack => _videoPlayerTrack;
+
+  ///Currently selected native player track(audio). Used only for HLS / DASH.
+  BetterPlayerTrack? get audioPlayerTrack => _audioPlayerTrack;
+
+  ///Currently selected native player track(subtitle). Used only for HLS / DASH.
+  BetterPlayerTrack? get subtitlePlayerTrack => _subtitlePlayerTrack;
 
   ///Currently selected player track. Used only for HLS / DASH.
   BetterPlayerAsmsTrack? get betterPlayerAsmsTrack => _betterPlayerAsmsTrack;
@@ -201,6 +223,9 @@ class BetterPlayerController {
   ///normal events, use eventListener.
   Stream<BetterPlayerControllerEvent> get controllerEventStream => _controllerEventStreamController.stream;
 
+  /// Stream of analytics events
+  Stream<Map<dynamic, dynamic>> get analyticsEventStream => _controllerAnalytics.stream;
+
   ///Flag which determines whether are ASMS segments loading
   bool _asmsSegmentsLoading = false;
 
@@ -261,7 +286,9 @@ class BetterPlayerController {
 
     ///Process data source
     await _setupDataSource(betterPlayerDataSource);
-    setTrack(BetterPlayerAsmsTrack.defaultTrack());
+    if (betterPlayerDataSource.useAsmsTracks ?? false) {
+      setTrack(BetterPlayerAsmsTrack.defaultTrack());
+    }
   }
 
   ///Configure subtitles based on subtitles source.
@@ -286,7 +313,11 @@ class BetterPlayerController {
   ///This method configures tracks, subtitles and audio tracks from given
   ///master playlist.
   Future<void> _setupAsmsDataSource(BetterPlayerDataSource source) async {
-    final String? data = await BetterPlayerAsmsUtils.getDataFromUrl(betterPlayerDataSource!.url, _getHeaders());
+    final String? data = await BetterPlayerAsmsUtils.getDataFromUrl(
+      betterPlayerDataSource!.url,
+      _getHeaders(),
+      source.signature,
+    );
     if (data != null) {
       final BetterPlayerAsmsDataHolder response = await BetterPlayerAsmsUtils.parse(data, betterPlayerDataSource!.url);
 
@@ -297,20 +328,20 @@ class BetterPlayerController {
 
       /// Load subtitles
       if (betterPlayerDataSource?.useAsmsSubtitles ?? false) {
-        final List<BetterPlayerAsmsSubtitle> asmsSubtitles = response.subtitles ?? [];
-        for (final asmsSubtitle in asmsSubtitles) {
-          _betterPlayerSubtitlesSourceList.add(
-            BetterPlayerSubtitlesSource(
-              type: BetterPlayerSubtitlesSourceType.network,
-              name: asmsSubtitle.name,
-              urls: asmsSubtitle.realUrls,
-              asmsIsSegmented: asmsSubtitle.isSegmented,
-              asmsSegmentsTime: asmsSubtitle.segmentsTime,
-              asmsSegments: asmsSubtitle.segments,
-              selectedByDefault: asmsSubtitle.isDefault,
-            ),
-          );
-        }
+        final List<BetterPlayerAsmsSubtitle> _ = response.subtitles ?? []
+          ..forEach((BetterPlayerAsmsSubtitle asmsSubtitle) {
+            _betterPlayerSubtitlesSourceList.add(
+              BetterPlayerSubtitlesSource(
+                type: BetterPlayerSubtitlesSourceType.network,
+                name: asmsSubtitle.name,
+                urls: asmsSubtitle.realUrls,
+                asmsIsSegmented: asmsSubtitle.isSegmented,
+                asmsSegmentsTime: asmsSubtitle.segmentsTime,
+                asmsSegments: asmsSubtitle.segments,
+                selectedByDefault: asmsSubtitle.isDefault,
+              ),
+            );
+          });
       }
 
       ///Load audio tracks
@@ -439,6 +470,8 @@ class BetterPlayerController {
           activityName: _betterPlayerDataSource?.notificationConfiguration?.activityName,
           clearKey: _betterPlayerDataSource?.drmConfiguration?.clearKey,
           videoExtension: _betterPlayerDataSource!.videoExtension,
+          sig: betterPlayerDataSource.signature,
+          videoConstraint: betterPlayerDataSource.videoConstraint?.toMap(),
         );
 
       case BetterPlayerDataSourceType.file:
@@ -710,7 +743,8 @@ class BetterPlayerController {
 
   ///Send player event to all listeners.
   void _postEvent(BetterPlayerEvent betterPlayerEvent) {
-    for (final void Function(BetterPlayerEvent)? eventListener in _eventListeners) {
+    // ignore: inference_failure_on_function_return_type
+    for (final Function(BetterPlayerEvent)? eventListener in _eventListeners) {
       if (eventListener != null) {
         eventListener(betterPlayerEvent);
       }
@@ -720,7 +754,7 @@ class BetterPlayerController {
   ///Listener used to handle video player changes.
   Future<void> _onVideoPlayerChanged() async {
     final VideoPlayerValue currentVideoPlayerValue =
-        videoPlayerController?.value ?? VideoPlayerValue(duration: Duration.zero);
+        videoPlayerController?.value ?? const VideoPlayerValue(duration: Duration.zero);
 
     if (currentVideoPlayerValue.hasError) {
       _videoPlayerValueOnError ??= currentVideoPlayerValue;
@@ -814,7 +848,7 @@ class BetterPlayerController {
 
       _nextVideoTimer = Timer.periodic(const Duration(milliseconds: 1000), (timer) async {
         if (_nextVideoTime == 1) {
-          timer.cancel();
+          _nextVideoTimer?.cancel();
           _nextVideoTimer = null;
         }
         if (_nextVideoTime != null) {
@@ -864,6 +898,62 @@ class BetterPlayerController {
 
     videoPlayerController!.setTrackParameters(track.width, track.height, track.bitrate);
     _betterPlayerAsmsTrack = track;
+  }
+
+  ///set native video track
+  ///
+  void setNativeVideoTrack(BetterPlayerTrack track) {
+    if (videoPlayerController == null) {
+      throw StateError('The data source has not been initialized');
+    }
+    _postEvent(
+      BetterPlayerEvent(
+        BetterPlayerEventType.changedTrack,
+        parameters: <String, dynamic>{
+          'id': track.id,
+          'width': track.width,
+          'height': track.height,
+          'bitrate': track.bitrate,
+          'frameRate': track.frameRate,
+          'mimeType': track.mime,
+        },
+      ),
+    );
+    videoPlayerController!.setTrackParameters(track.width, track.height, track.bitrate);
+    _videoPlayerTrack = track;
+  }
+
+  ///set native audio track
+  ///
+  void setNativeAudioTrack(BetterPlayerTrack track) {
+    if (videoPlayerController == null) {
+      throw StateError('The data source has not been initialized');
+    }
+    _postEvent(
+      BetterPlayerEvent(
+        BetterPlayerEventType.changedTrack,
+        parameters: <String, dynamic>{
+          'id': track.id,
+          'width': track.width,
+          'height': track.height,
+          'bitrate': track.bitrate,
+          'frameRate': track.frameRate,
+          'mimeType': track.mime,
+        },
+      ),
+    );
+    if (Platform.isIOS) {
+      videoPlayerController!.setAudioTrack(track.label, track.groupIndex ?? 0);
+    } else {
+      videoPlayerController!.setAudioTrack(track.groupId, track.groupIndex);
+    }
+    _videoPlayerTrack = track;
+  }
+
+  ///set native video track constraint
+  ///
+  void setTrackConstraint({int? width, int? height, int? bitrate}) {
+    videoPlayerController!.setTrackConstraint(width, height, bitrate);
   }
 
   ///Check if player can be played/paused automatically
@@ -918,6 +1008,7 @@ class BetterPlayerController {
   ///Setup translations for given locale. In normal use cases it shouldn't be
   ///called manually.
   void setupTranslations(Locale locale) {
+    // ignore: unnecessary_null_comparison
     final String languageCode = locale.languageCode;
     translations =
         betterPlayerConfiguration.translations?.firstWhereOrNull(
@@ -1097,7 +1188,19 @@ class BetterPlayerController {
         );
       case VideoEventType.bufferingEnd:
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.bufferingEnd));
+      case VideoEventType.trackChanged:
+        _postEvent(BetterPlayerEvent(BetterPlayerEventType.nativeTracksChanged));
+      case VideoEventType.videoAnalytics:
+        if (event.metadata != null) {
+          final String? collector = event.metadata!['collector'] as String?;
+          final String? type = event.metadata!['type'] as String?;
+          BetterPlayerUtils.log(
+            '[Flutter Analytics] Processing analytics event in controller - Collector: $collector, Type: $type, Adding to analytics stream',
+          );
+          _controllerAnalytics.add(event.metadata!);
+        }
       default:
+        //TODO: Handle when needed
         break;
     }
   }
@@ -1222,6 +1325,7 @@ class BetterPlayerController {
       _videoEventStreamSubscription?.cancel();
       _disposed = true;
       _controllerEventStreamController.close();
+      _controllerAnalytics.close();
 
       ///Delete files async
       for (final file in _tempFiles) {
