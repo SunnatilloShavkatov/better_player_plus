@@ -149,6 +149,13 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
       return null;
     }
 
+    // Sometimes the media server returns a absolute position far greater than
+    // the datetime instance can handle. This caps the value to the maximum the datetime
+    // can use.
+    if (milliseconds > 8640000000000000 || milliseconds < -8640000000000000) {
+      return null;
+    }
+
     return DateTime.fromMillisecondsSinceEpoch(milliseconds);
   }
 
