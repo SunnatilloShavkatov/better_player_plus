@@ -190,6 +190,18 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   );
 
   @override
+  Future<void> enableTextTrack(int? textureId) => _channel.invokeMethod<void>(
+    'enableTextTrack',
+    <String, dynamic>{'textureId': textureId},
+  );
+
+  @override
+  Future<void> disableTextTrack(int? textureId) => _channel.invokeMethod<void>(
+    'disableTextTrack',
+    <String, dynamic>{'textureId': textureId},
+  );
+
+  @override
   Future<void> clearCache() => _channel.invokeMethod<void>('clearCache', <String, dynamic>{});
 
   @override
@@ -280,6 +292,13 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
 
           case 'pipStop':
             return VideoEvent(eventType: VideoEventType.pipStop, key: key);
+
+          case 'subtitleCue':
+            return VideoEvent(
+              eventType: VideoEventType.subtitleCue,
+              key: key,
+              subtitleText: map['subtitleText'] as String? ?? '',
+            );
 
           default:
             return VideoEvent(eventType: VideoEventType.unknown, key: key);

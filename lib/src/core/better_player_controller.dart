@@ -210,6 +210,18 @@ class BetterPlayerController {
   ///Currently displayed [BetterPlayerSubtitle].
   BetterPlayerSubtitle? renderedSubtitle;
 
+  ///Current native subtitle cue text from platform player (ExoPlayer/AVPlayer).
+  String _nativeSubtitleText = '';
+
+  ///Current native subtitle cue text from platform player.
+  String get nativeSubtitleText => _nativeSubtitleText;
+
+  ///Whether native subtitle cues are being used.
+  bool _useNativeSubtitles = false;
+
+  ///Whether native subtitle cues are being used.
+  bool get useNativeSubtitles => _useNativeSubtitles;
+
   ///Get BetterPlayerController from context. Used in InheritedWidget.
   static BetterPlayerController of(BuildContext context) {
     final betterPLayerControllerProvider = context
@@ -1100,9 +1112,23 @@ class BetterPlayerController {
         );
       case VideoEventType.bufferingEnd:
         _postEvent(BetterPlayerEvent(BetterPlayerEventType.bufferingEnd));
+      case VideoEventType.subtitleCue:
+        _nativeSubtitleText = event.subtitleText ?? '';
+        _useNativeSubtitles = true;
       default:
         break;
     }
+  }
+
+  ///Enable native text track rendering (ExoPlayer/AVPlayer handles subtitles).
+  void enableNativeTextTrack() {
+    videoPlayerController?.enableTextTrack();
+  }
+
+  ///Disable native text track rendering.
+  void disableNativeTextTrack() {
+    _nativeSubtitleText = '';
+    videoPlayerController?.disableTextTrack();
   }
 
   ///Setup controls always visible mode

@@ -157,6 +157,14 @@ abstract class VideoPlayerPlatform {
     throw UnimplementedError('setMixWithOthers() has not been implemented.');
   }
 
+  Future<void> enableTextTrack(int? textureId) {
+    throw UnimplementedError('enableTextTrack() has not been implemented.');
+  }
+
+  Future<void> disableTextTrack(int? textureId) {
+    throw UnimplementedError('disableTextTrack() has not been implemented.');
+  }
+
   Future<void> clearCache() {
     throw UnimplementedError('clearCache() has not been implemented.');
   }
@@ -373,6 +381,7 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.position,
+    this.subtitleText,
   });
 
   /// The type of the event.
@@ -400,6 +409,9 @@ class VideoEvent {
 
   ///Seek position
   final Duration? position;
+
+  ///Native subtitle cue text
+  final String? subtitleText;
 
   @override
   bool operator ==(Object other) =>
@@ -450,6 +462,9 @@ enum VideoEventType {
 
   /// Picture in picture mode has been dismissed
   pipStop,
+
+  /// Native subtitle cue received from platform player
+  subtitleCue,
 
   /// An unknown event has been received.
   unknown,

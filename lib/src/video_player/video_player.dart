@@ -240,6 +240,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isPip: true);
         case VideoEventType.pipStop:
           value = value.copyWith(isPip: false);
+        case VideoEventType.subtitleCue:
+          // Handled via videoEventStreamController in BetterPlayerController
+          break;
         case VideoEventType.unknown:
           break;
       }
@@ -596,6 +599,14 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   void setMixWithOthers(bool mixWithOthers) {
     _videoPlayerPlatform.setMixWithOthers(_textureId, mixWithOthers);
+  }
+
+  void enableTextTrack() {
+    _videoPlayerPlatform.enableTextTrack(_textureId);
+  }
+
+  void disableTextTrack() {
+    _videoPlayerPlatform.disableTextTrack(_textureId);
   }
 
   static Future<void> clearCache() async => _videoPlayerPlatform.clearCache();

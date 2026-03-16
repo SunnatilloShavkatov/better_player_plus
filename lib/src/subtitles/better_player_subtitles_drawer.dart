@@ -54,6 +54,7 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
     _outerTextStyle = TextStyle(
       fontSize: _configuration!.fontSize,
       fontFamily: _configuration!.fontFamily,
+      decoration: TextDecoration.none,
       foreground: Paint()
         ..style = PaintingStyle.stroke
         ..strokeWidth = _configuration!.outlineSize
@@ -64,6 +65,7 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
       fontFamily: _configuration!.fontFamily,
       color: _configuration!.fontColor,
       fontSize: _configuration!.fontSize,
+      decoration: TextDecoration.none,
     );
 
     super.initState();
@@ -87,9 +89,17 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
 
   @override
   Widget build(BuildContext context) {
-    final BetterPlayerSubtitle? subtitle = _getSubtitleAtCurrentPosition();
-    widget.betterPlayerController.renderedSubtitle = subtitle;
-    final List<String> subtitles = subtitle?.texts ?? [];
+    // Prefer native subtitle cues from ExoPlayer/AVPlayer when available.
+    final String nativeText = widget.betterPlayerController.nativeSubtitleText;
+    final List<String> subtitles;
+    if (widget.betterPlayerController.useNativeSubtitles && nativeText.isNotEmpty) {
+      subtitles = nativeText.split('\n');
+      widget.betterPlayerController.renderedSubtitle = null;
+    } else {
+      final BetterPlayerSubtitle? subtitle = _getSubtitleAtCurrentPosition();
+      widget.betterPlayerController.renderedSubtitle = subtitle;
+      subtitles = subtitle?.texts ?? [];
+    }
     final List<Widget> textWidgets = subtitles.map(_buildSubtitleTextWidget).toList();
 
     return SizedBox.expand(

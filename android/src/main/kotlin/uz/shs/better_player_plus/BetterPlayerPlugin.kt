@@ -248,6 +248,16 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
                 }
             }
 
+            ENABLE_TEXT_TRACK_METHOD -> {
+                player.enableTextTrack()
+                result.success(null)
+            }
+
+            DISABLE_TEXT_TRACK_METHOD -> {
+                player.disableTextTrack()
+                result.success(null)
+            }
+
             DISPOSE_METHOD -> {
                 dispose(player, textureId)
                 result.success(null)
@@ -583,6 +593,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val IS_PICTURE_IN_PICTURE_SUPPORTED_METHOD = "isPictureInPictureSupported"
         private const val SET_MIX_WITH_OTHERS_METHOD = "setMixWithOthers"
         private const val CLEAR_CACHE_METHOD = "clearCache"
+        private const val ENABLE_TEXT_TRACK_METHOD = "enableTextTrack"
+        private const val DISABLE_TEXT_TRACK_METHOD = "disableTextTrack"
         private const val DISPOSE_METHOD = "dispose"
         private const val PRE_CACHE_METHOD = "preCache"
         private const val STOP_PRE_CACHE_METHOD = "stopPreCache"

@@ -43,6 +43,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionOverride
+import androidx.media3.common.text.CueGroup
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.util.Util
 import androidx.media3.datasource.DataSource
@@ -96,6 +97,7 @@ internal class BetterPlayer(
     private var refreshHandler: Handler? = null
     private var refreshRunnable: Runnable? = null
     private var exoPlayerEventListener: Player.Listener? = null
+    private var textTrackEnabled = true
     private var bitmap: Bitmap? = null
     private var mediaSession: MediaSessionCompat? = null
     private var drmSessionManager: DrmSessionManager? = null
@@ -114,6 +116,11 @@ internal class BetterPlayer(
             this.customDefaultLoadControl.bufferForPlaybackAfterRebufferMs
         )
         loadControl = loadBuilder.build()
+        // Pre confg track selector to allow text tracks with undetermined language
+        val initialParams = trackSelector.buildUponParameters()
+        initialParams.setSelectUndeterminedTextLanguage(true)
+        trackSelector.setParameters(initialParams)
+
         exoPlayer = ExoPlayer.Builder(context)
             .setTrackSelector(trackSelector)
             .setLoadControl(loadControl)
@@ -549,6 +556,24 @@ internal class BetterPlayer(
                 eventSink.error(errorCode.toString(), errorMessage, error)
             }
         })
+        // Listen for subtitle cues and track changes from ExoPlayer.
+        exoPlayer?.addListener(object : Player.Listener {
+            override fun onCues(cueGroup: CueGroup) {
+                val texts = cueGroup.cues.mapNotNull { it.text?.toString() }
+                val joined = texts.joinToString("\n")
+                val event: MutableMap<String, Any> = HashMap()
+                event["event"] = "subtitleCue"
+                event["subtitleText"] = joined
+                eventSink.success(event)
+            }
+
+            override fun onTracksChanged(tracks: androidx.media3.common.Tracks) {
+                if (textTrackEnabled) {
+                    selectFirstTextTrack()
+                }
+            }
+        })
+
         val reply: MutableMap<String, Any> = HashMap()
         reply["textureId"] = textureEntry.id()
         result.success(reply)
@@ -799,6 +824,41 @@ internal class BetterPlayer(
 
     fun setMixWithOthers(mixWithOthers: Boolean) {
         setAudioAttributes(exoPlayer, mixWithOthers)
+    }
+
+    fun enableTextTrack() {
+        textTrackEnabled = true
+        val parametersBuilder = trackSelector.buildUponParameters()
+        parametersBuilder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+        parametersBuilder.setSelectUndeterminedTextLanguage(true)
+        trackSelector.setParameters(parametersBuilder)
+        selectFirstTextTrack()
+    }
+
+    private fun selectFirstTextTrack() {
+        val mappedTrackInfo = trackSelector.currentMappedTrackInfo ?: return
+        for (i in 0 until mappedTrackInfo.rendererCount) {
+            if (mappedTrackInfo.getRendererType(i) == C.TRACK_TYPE_TEXT) {
+                val groups = mappedTrackInfo.getTrackGroups(i)
+                if (groups.length > 0) {
+                    val firstGroup = groups[0]
+                    val parametersBuilder = trackSelector.buildUponParameters()
+                    parametersBuilder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, false)
+                    parametersBuilder.setSelectUndeterminedTextLanguage(true)
+                    parametersBuilder.addOverride(TrackSelectionOverride(firstGroup, 0))
+                    trackSelector.setParameters(parametersBuilder)
+                }
+                return
+            }
+        }
+    }
+
+    fun disableTextTrack() {
+        textTrackEnabled = false
+        val parametersBuilder = trackSelector.buildUponParameters()
+        parametersBuilder.setTrackTypeDisabled(C.TRACK_TYPE_TEXT, true)
+        parametersBuilder.clearOverridesOfType(C.TRACK_TYPE_TEXT)
+        trackSelector.setParameters(parametersBuilder)
     }
 
     fun dispose() {
