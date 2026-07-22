@@ -53,18 +53,18 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
     widget.betterPlayerController.videoPlayerController?.addListener(_updateState);
 
     _outerTextStyle = TextStyle(
-      fontSize: _configuration?.fontSize,
-      fontFamily: _configuration?.fontFamily,
+      fontSize: _configuration!.fontSize,
+      fontFamily: _configuration!.fontFamily,
       foreground: Paint()
         ..style = PaintingStyle.stroke
-        ..strokeWidth = _configuration?.outlineSize
-        ..color = _configuration?.outlineColor,
+        ..strokeWidth = _configuration!.outlineSize
+        ..color = _configuration!.outlineColor,
     );
 
     _innerTextStyle = TextStyle(
-      fontFamily: _configuration?.fontFamily,
-      color: _configuration?.fontColor,
-      fontSize: _configuration?.fontSize,
+      fontFamily: _configuration!.fontFamily,
+      color: _configuration!.fontColor,
+      fontSize: _configuration!.fontSize,
     );
 
     super.initState();
@@ -96,9 +96,9 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
     return SizedBox.expand(
       child: Padding(
         padding: EdgeInsets.only(
-          bottom: _playerVisible ? _configuration?.bottomPadding + 30 : _configuration?.bottomPadding,
-          left: _configuration?.leftPadding,
-          right: _configuration?.rightPadding,
+          bottom: _playerVisible ? _configuration!.bottomPadding + 30 : _configuration!.bottomPadding,
+          left: _configuration!.leftPadding,
+          right: _configuration!.rightPadding,
         ),
         child: Column(mainAxisAlignment: MainAxisAlignment.end, children: textWidgets),
       ),
@@ -110,7 +110,7 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
       return null;
     }
 
-    final Duration position = _latestValue?.position;
+    final Duration position = _latestValue!.position;
     for (final BetterPlayerSubtitle subtitle in widget.betterPlayerController.subtitlesLines) {
       if (subtitle.start! <= position && subtitle.end! >= position) {
         return subtitle;
@@ -122,16 +122,16 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
   Widget _buildSubtitleTextWidget(String subtitleText) => Row(
     children: [
       Expanded(
-        child: Align(alignment: _configuration?.alignment, child: _getTextWithStroke(subtitleText)),
+        child: Align(alignment: _configuration!.alignment, child: _getTextWithStroke(subtitleText)),
       ),
     ],
   );
 
   Widget _getTextWithStroke(String subtitleText) => ColoredBox(
-    color: _configuration?.backgroundColor,
+    color: _configuration!.backgroundColor,
     child: Stack(
       children: [
-        if (_configuration?.outlineEnabled) _buildHtmlWidget(subtitleText, _outerTextStyle) else const SizedBox(),
+        if (_configuration!.outlineEnabled) _buildHtmlWidget(subtitleText, _outerTextStyle) else const SizedBox(),
         _buildHtmlWidget(subtitleText, _innerTextStyle),
       ],
     ),

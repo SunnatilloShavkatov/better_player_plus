@@ -21,9 +21,9 @@ class BetterPlayerWithControls extends StatefulWidget {
 
 class _BetterPlayerWithControlsState extends State<BetterPlayerWithControls> {
   BetterPlayerSubtitlesConfiguration get subtitlesConfiguration =>
-      widget.controller?.betterPlayerConfiguration.subtitlesConfiguration;
+      widget.controller!.betterPlayerConfiguration.subtitlesConfiguration;
 
-  BetterPlayerControlsConfiguration get controlsConfiguration => widget.controller?.betterPlayerControlsConfiguration;
+  BetterPlayerControlsConfiguration get controlsConfiguration => widget.controller!.betterPlayerControlsConfiguration;
 
   final StreamController<bool> playerVisibilityStreamController = StreamController();
 
@@ -240,7 +240,7 @@ class _BetterPlayerVideoFitWidgetState extends State<_BetterPlayerVideoFitWidget
         }
 
         if (_initialized != controller?.value.initialized) {
-          _initialized = controller?.value.initialized;
+          _initialized = controller?.value.initialized ?? false;
           setState(() {});
         }
       };
