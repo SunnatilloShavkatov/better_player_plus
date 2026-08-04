@@ -455,6 +455,15 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     _timer?.cancel();
     if (value.isPlaying) {
       await _videoPlayerPlatform.play(_textureId);
+      // Guard against re-entrancy: if a concurrent play() call (or a dispose)
+      // happened while awaiting, cancel any timer it may have armed and bail
+      // out if we're disposed. Without this, two overlapping play() calls each
+      // create a periodic timer and the second assignment orphans the first,
+      // leaking a timer that nothing can ever cancel.
+      if (_isDisposed) {
+        return;
+      }
+      _timer?.cancel();
       _timer = Timer.periodic(const Duration(milliseconds: 300), (Timer timer) async {
         if (_isDisposed) {
           return;

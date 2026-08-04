@@ -914,6 +914,13 @@ class BetterPlayerController {
     await seekTo(position!);
     if (wasPlayingBeforeChange) {
       await play();
+    } else {
+      // Restore the paused state deterministically. `setupDataSource` re-runs
+      // `_initializeVideo`, whose autoPlay may set `_wasPlayingBeforePause` and
+      // let the visibility handler resume playback after the swap. Pausing and
+      // clearing that flag keeps a paused resolution switch paused.
+      await pause();
+      _wasPlayingBeforePause = null;
     }
     _postEvent(BetterPlayerEvent(BetterPlayerEventType.changedResolution, parameters: <String, dynamic>{'url': url}));
   }

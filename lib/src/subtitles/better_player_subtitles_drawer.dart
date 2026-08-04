@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:better_player_plus/src/subtitles/better_player_subtitle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_widget_from_html_core/flutter_widget_from_html_core.dart';
 
 class BetterPlayerSubtitlesDrawer extends StatefulWidget {
@@ -39,8 +40,12 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
   @override
   void initState() {
     _visibilityStreamSubscription = widget.playerVisibilityStream.listen((state) {
-      setState(() {
-        _playerVisible = state;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _playerVisible = state;
+          });
+        }
       });
     });
 
@@ -80,8 +85,12 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
   ///Called when player state has changed, i.e. new player position, etc.
   void _updateState() {
     if (mounted) {
-      setState(() {
-        _latestValue = widget.betterPlayerController.videoPlayerController!.value;
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          setState(() {
+            _latestValue = widget.betterPlayerController.videoPlayerController!.value;
+          });
+        }
       });
     }
   }
