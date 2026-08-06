@@ -1,5 +1,5 @@
 // GestureDetector callbacks require separate statements rather than cascade chains
-// ignore_for_file: cascade_invocations
+// ignore_for_file: cascade_invocations, discarded_futures
 
 import 'dart:async';
 import 'package:better_player_plus/better_player_plus.dart';
@@ -16,6 +16,7 @@ class BetterPlayerMaterialVideoProgressBar extends StatefulWidget {
     this.onDragStart,
     this.onDragUpdate,
     this.onTapDown,
+    this.onTapEnd,
     super.key,
   }) : colors = colors ?? BetterPlayerProgressColors();
 
@@ -26,6 +27,7 @@ class BetterPlayerMaterialVideoProgressBar extends StatefulWidget {
   final void Function()? onDragEnd;
   final void Function()? onDragUpdate;
   final void Function()? onTapDown;
+  final void Function()? onTapEnd;
 
   @override
   State<BetterPlayerMaterialVideoProgressBar> createState() => _VideoProgressBarState();
@@ -50,6 +52,9 @@ class _VideoProgressBarState extends State<BetterPlayerMaterialVideoProgressBar>
   bool shouldPlayAfterDragEnd = false;
   Duration? lastSeek;
   Timer? _updateBlockTimer;
+  bool _isFinalizingInteraction = false;
+  bool _interactionActive = false;
+  bool _dragActive = false;
 
   @override
   void initState() {
@@ -66,18 +71,25 @@ class _VideoProgressBarState extends State<BetterPlayerMaterialVideoProgressBar>
 
   @override
   Widget build(BuildContext context) {
-    final bool enableProgressBarDrag =
-        betterPlayerController!.betterPlayerConfiguration.controlsConfiguration.enableProgressBarDrag;
+    final controlsConfiguration = betterPlayerController!.betterPlayerControlsConfiguration;
+    final bool enableProgressBarDrag = controlsConfiguration.enableProgressBarDrag;
+    final bool seekOnInteractionEnd = controlsConfiguration.seekOnProgressBarInteractionEnd;
 
     return GestureDetector(
       onHorizontalDragStart: (DragStartDetails details) {
-        if (!controller!.value.initialized || !enableProgressBarDrag) {
+        if (!controller!.value.initialized || !enableProgressBarDrag || _isFinalizingInteraction) {
           return;
         }
 
-        _controllerWasPlaying = controller!.value.isPlaying;
-        if (_controllerWasPlaying) {
-          controller!.pause();
+        if (seekOnInteractionEnd) {
+          _dragActive = true;
+          _startInteraction();
+          _updatePreview(details.globalPosition);
+        } else {
+          _controllerWasPlaying = controller!.value.isPlaying;
+          if (_controllerWasPlaying) {
+            unawaited(controller!.pause());
+          }
         }
 
         if (widget.onDragStart != null) {
@@ -85,18 +97,28 @@ class _VideoProgressBarState extends State<BetterPlayerMaterialVideoProgressBar>
         }
       },
       onHorizontalDragUpdate: (DragUpdateDetails details) {
-        if (!controller!.value.initialized || !enableProgressBarDrag) {
+        if (!controller!.value.initialized || !enableProgressBarDrag || _isFinalizingInteraction) {
           return;
         }
 
-        seekToRelativePosition(details.globalPosition);
+        if (seekOnInteractionEnd) {
+          _updatePreview(details.globalPosition);
+        } else {
+          seekToRelativePosition(details.globalPosition);
+        }
 
         if (widget.onDragUpdate != null) {
           widget.onDragUpdate!.call();
         }
       },
       onHorizontalDragEnd: (DragEndDetails details) {
-        if (!enableProgressBarDrag) {
+        if (!enableProgressBarDrag || _isFinalizingInteraction) {
+          return;
+        }
+
+        if (seekOnInteractionEnd) {
+          _dragActive = false;
+          unawaited(_completeDeferredInteraction(widget.onDragEnd));
           return;
         }
 
@@ -110,16 +132,46 @@ class _VideoProgressBarState extends State<BetterPlayerMaterialVideoProgressBar>
           widget.onDragEnd!.call();
         }
       },
-      onTapDown: (TapDownDetails details) {
-        if (!controller!.value.initialized || !enableProgressBarDrag) {
+      onHorizontalDragCancel: () {
+        if (!enableProgressBarDrag || !seekOnInteractionEnd || _isFinalizingInteraction) {
           return;
         }
-        seekToRelativePosition(details.globalPosition);
-        _setupUpdateBlockTimer();
+        _dragActive = false;
+        _cancelDeferredInteraction(widget.onDragEnd);
+      },
+      onTapDown: (TapDownDetails details) {
+        if (!controller!.value.initialized || !enableProgressBarDrag || _isFinalizingInteraction) {
+          return;
+        }
+        if (seekOnInteractionEnd) {
+          _startInteraction();
+          _updatePreview(details.globalPosition);
+        } else {
+          seekToRelativePosition(details.globalPosition);
+          _setupUpdateBlockTimer();
+        }
         if (widget.onTapDown != null) {
           widget.onTapDown!.call();
         }
       },
+      onTapUp: seekOnInteractionEnd
+          ? (_) {
+              if (!enableProgressBarDrag || _isFinalizingInteraction) {
+                return;
+              }
+              unawaited(_completeDeferredInteraction(widget.onTapEnd));
+            }
+          : null,
+      onTapCancel: seekOnInteractionEnd
+          ? () {
+              scheduleMicrotask(() {
+                if (!enableProgressBarDrag || _isFinalizingInteraction || _dragActive) {
+                  return;
+                }
+                _cancelDeferredInteraction(widget.onTapEnd);
+              });
+            }
+          : null,
       child: Center(
         child: Container(
           height: MediaQuery.of(context).size.height / 2,
@@ -149,6 +201,80 @@ class _VideoProgressBarState extends State<BetterPlayerMaterialVideoProgressBar>
     } else {
       return controller!.value;
     }
+  }
+
+  void _startInteraction() {
+    if (_interactionActive) {
+      return;
+    }
+    _interactionActive = true;
+    _controllerWasPlaying = controller!.value.isPlaying;
+    if (_controllerWasPlaying) {
+      unawaited(controller!.pause());
+    }
+  }
+
+  Duration? _positionForGlobalOffset(Offset globalPosition) {
+    final RenderObject? renderObject = context.findRenderObject();
+    if (renderObject is! RenderBox) {
+      return null;
+    }
+    final duration = controller!.value.duration;
+    if (duration == null || duration.inMilliseconds <= 0 || renderObject.size.width <= 0) {
+      return null;
+    }
+    final Offset tapPosition = renderObject.globalToLocal(globalPosition);
+    final double relative = (tapPosition.dx / renderObject.size.width).clamp(0.0, 1.0);
+    return duration * relative;
+  }
+
+  void _updatePreview(Offset globalPosition) {
+    final position = _positionForGlobalOffset(globalPosition);
+    if (position == null || !mounted) {
+      return;
+    }
+    setState(() => lastSeek = position);
+  }
+
+  Future<void> _completeDeferredInteraction(VoidCallback? onCompleted) async {
+    if (_isFinalizingInteraction || !_interactionActive) {
+      return;
+    }
+    _interactionActive = false;
+    final target = lastSeek;
+    final bool shouldResume = _controllerWasPlaying;
+    setState(() => _isFinalizingInteraction = true);
+    try {
+      if (target != null) {
+        await betterPlayerController!.seekTo(target);
+      }
+    } finally {
+      if (shouldResume) {
+        await betterPlayerController!.play();
+      }
+      if (mounted) {
+        setState(() {
+          _isFinalizingInteraction = false;
+          lastSeek = null;
+        });
+        onCompleted?.call();
+      }
+    }
+  }
+
+  void _cancelDeferredInteraction(VoidCallback? onCanceled) {
+    if (!_interactionActive) {
+      return;
+    }
+    _interactionActive = false;
+    final bool shouldResume = _controllerWasPlaying;
+    if (mounted) {
+      setState(() => lastSeek = null);
+    }
+    if (shouldResume) {
+      unawaited(betterPlayerController!.play());
+    }
+    onCanceled?.call();
   }
 
   Future<void> seekToRelativePosition(Offset globalPosition) async {
@@ -200,7 +326,11 @@ class _ProgressBarPainter extends CustomPainter {
       colors.backgroundPaint,
     );
     final duration = value.duration;
-    if (!value.initialized || duration == null || duration.inMilliseconds <= 0 || !size.width.isFinite || size.width <= 0) {
+    if (!value.initialized ||
+        duration == null ||
+        duration.inMilliseconds <= 0 ||
+        !size.width.isFinite ||
+        size.width <= 0) {
       return;
     }
     final double playedPartPercent = _safeFraction(value.position, duration);

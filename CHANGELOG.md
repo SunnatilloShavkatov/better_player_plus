@@ -1,3 +1,7 @@
+## Unreleased
+
+* Added opt-in `seekOnProgressBarInteractionEnd` controls configuration to defer progress bar seeks until drag or tap release
+
 ## 1.3.4
 
 * Fixed iOS build error: duplicate `BetterPlayerPlugin` interface definition caused by CocoaPods exposing ObjC header alongside Swift-generated header; excluded `BetterPlayerPlugin.h/m` from podspec source files

@@ -60,6 +60,10 @@ final bool enableProgressBar;
 ///Flag used to enable/disable progress bar drag
 final bool enableProgressBarDrag;
 
+///When enabled, progress bar drag and tap interactions update only the
+///visual preview and seek once the interaction ends.
+final bool seekOnProgressBarInteractionEnd;
+
 ///Flag used to enable/disable play-pause
 final bool enablePlayPause;
 

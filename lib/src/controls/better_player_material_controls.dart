@@ -569,7 +569,8 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
           _hideTimer?.cancel();
         },
         onDragEnd: _startHideTimer,
-        onTapDown: cancelAndRestartTimer,
+        onTapDown: _controlsConfiguration.seekOnProgressBarInteractionEnd ? _hideTimer?.cancel : cancelAndRestartTimer,
+        onTapEnd: _controlsConfiguration.seekOnProgressBarInteractionEnd ? _startHideTimer : null,
         colors: BetterPlayerProgressColors(
           playedColor: _controlsConfiguration.progressBarPlayedColor,
           handleColor: _controlsConfiguration.progressBarHandleColor,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:better_player_plus/src/video_player/video_player.dart';
 import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
 
@@ -12,15 +14,21 @@ class MockVideoPlayerController extends VideoPlayerController {
   int? trackWidth;
   int? trackHeight;
   int? trackBitrate;
+  int playCalls = 0;
+  int pauseCalls = 0;
+  final List<Duration> seekCalls = <Duration>[];
+  Completer<void>? seekCompleter;
 
   @override
   Future<void> play() async {
+    playCalls += 1;
     value = value.copyWith(isPlaying: true);
     return;
   }
 
   @override
   Future<void> pause() async {
+    pauseCalls += 1;
     value = value.copyWith(isPlaying: false);
     return;
   }
@@ -40,6 +48,13 @@ class MockVideoPlayerController extends VideoPlayerController {
 
   @override
   Future<void> seekTo(Duration? position) async {
+    if (position != null) {
+      seekCalls.add(position);
+    }
+    final Completer<void>? pendingSeek = seekCompleter;
+    if (pendingSeek != null) {
+      await pendingSeek.future;
+    }
     value = value.copyWith(position: position);
   }
 
