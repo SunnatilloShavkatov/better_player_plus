@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "uz.shs.better_player_plus"
-version = "1.3.4"
+version = "1.3.5"
 
 val lifecycleVersion = "2.9.4"
 val annotationVersion = "1.9.1"

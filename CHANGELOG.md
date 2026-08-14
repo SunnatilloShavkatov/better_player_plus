@@ -1,3 +1,10 @@
+## 1.3.5
+
+* Fixed Android hardware decoder failure by adding software decoder fallback (thanks @ZhaosongRen)
+* Fixed Android play/pause notification state not syncing from native player changes (thanks @mmeshrif)
+* Fixed `NullPointerException` in `_BetterPlayerVideoFitWidgetState.dispose` and unassigned ClearKey `DrmSessionManager` on Android (thanks @vivek995378)
+* Fixed Simplified Chinese translations (thanks @zs)
+
 ## 1.3.4
 
 * Fixed iOS build error: duplicate `BetterPlayerPlugin` interface definition caused by CocoaPods exposing ObjC header alongside Swift-generated header; excluded `BetterPlayerPlugin.h/m` from podspec source files
