@@ -36,15 +36,15 @@ class BetterPlayerTranslations {
     generalDefaultError: '无法播放视频',
     generalNone: '没有',
     generalDefault: '默认',
-    generalRetry: '重試',
+    generalRetry: '重试',
     playlistLoadingNextVideo: '正在加载下一个视频',
     controlsLive: '直播',
     controlsNextVideoIn: '下一部影片',
     overflowMenuPlaybackSpeed: '播放速度',
     overflowMenuSubtitles: '字幕',
-    overflowMenuQuality: '质量',
-    overflowMenuAudioTracks: '音訊',
-    qualityAuto: '汽車',
+    overflowMenuQuality: '画质',
+    overflowMenuAudioTracks: '音轨',
+    qualityAuto: '自动',
   );
 
   factory BetterPlayerTranslations.hindi() => BetterPlayerTranslations(
