@@ -502,6 +502,15 @@ internal class BetterPlayer(
             override fun onPlayerError(error: PlaybackException) {
                 eventSink.error("VideoError", "Video player had error $error", "")
             }
+
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                // Catches play/pause state changes triggered natively (e.g. the
+                // media notification's PlayerNotificationManager controls the
+                // ExoPlayer instance directly), which otherwise never reach Dart.
+                val event: MutableMap<String, Any> = HashMap()
+                event["event"] = if (isPlaying) "play" else "pause"
+                eventSink.success(event)
+            }
         })
         val reply: MutableMap<String, Any> = HashMap()
         reply["textureId"] = textureEntry.id()
