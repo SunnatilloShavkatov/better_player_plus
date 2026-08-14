@@ -175,7 +175,7 @@ internal class BetterPlayer(
                     .build(httpMediaDrmCallback)
             }
         } else if (!clearKey.isNullOrEmpty()) {
-            DefaultDrmSessionManager.Builder()
+            drmSessionManager = DefaultDrmSessionManager.Builder()
                 .setUuidAndExoMediaDrmProvider(
                     C.CLEARKEY_UUID,
                     FrameworkMediaDrm.DEFAULT_PROVIDER

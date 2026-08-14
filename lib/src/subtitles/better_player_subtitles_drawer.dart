@@ -50,7 +50,7 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
       _configuration = setupDefaultConfiguration();
     }
 
-    widget.betterPlayerController.videoPlayerController!.addListener(_updateState);
+    widget.betterPlayerController.videoPlayerController?.addListener(_updateState);
 
     _outerTextStyle = TextStyle(
       fontSize: _configuration!.fontSize,
@@ -72,7 +72,7 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
 
   @override
   void dispose() {
-    widget.betterPlayerController.videoPlayerController!.removeListener(_updateState);
+    widget.betterPlayerController.videoPlayerController?.removeListener(_updateState);
     _visibilityStreamSubscription.cancel();
     super.dispose();
   }
@@ -81,7 +81,7 @@ class _BetterPlayerSubtitlesDrawerState extends State<BetterPlayerSubtitlesDrawe
   void _updateState() {
     if (mounted) {
       setState(() {
-        _latestValue = widget.betterPlayerController.videoPlayerController!.value;
+        _latestValue = widget.betterPlayerController.videoPlayerController?.value;
       });
     }
   }
