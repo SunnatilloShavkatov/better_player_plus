@@ -44,6 +44,8 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
 
     private var pipController: AVPictureInPictureController?
     private var restoreUIOnPipStop: ((Bool) -> Void)?
+    /// Invalidates a pending background-pause check when a newer one supersedes it.
+    private var backgroundPauseGeneration = 0
 
     public override init() {
         self.player = AVPlayer()
@@ -56,6 +58,12 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         self.isInitialized = false
         self.isPlaying = false
         self.disposed = false
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(onDidEnterBackground),
+            name: UIApplication.didEnterBackgroundNotification,
+            object: nil
+        )
     }
 
     public convenience init(frame: CGRect) {
@@ -563,6 +571,32 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         setPictureInPicture(false)
     }
 
+    /// Stops playback when the app is backgrounded *without* PiP taking over.
+    ///
+    /// Automatic PiP only starts when the viewer moves to another app — locking the
+    /// screen never starts a session. An app that declares the `audio` background
+    /// mode (which PiP requires) therefore keeps playing to a dark screen, with no
+    /// PiP window to justify it. Pause in exactly that case.
+    ///
+    /// The delay is the crux: `canStartPictureInPictureAutomaticallyFromInline`
+    /// sessions are started by the system around this notification, and the ordering
+    /// is not guaranteed, so `isPictureInPictureActive` has to be read a beat later
+    /// than `didEnterBackground`. `backgroundPauseGeneration` drops a stale check if
+    /// another background transition lands first.
+    @objc private func onDidEnterBackground() {
+        guard isPlaying, !disposed else { return }
+        backgroundPauseGeneration += 1
+        let generation = backgroundPauseGeneration
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+            guard let self, !self.disposed, generation == self.backgroundPauseGeneration else { return }
+            // Back in the foreground already, or PiP took over: nothing to do.
+            guard UIApplication.shared.applicationState == .background else { return }
+            guard self.pipController?.isPictureInPictureActive != true else { return }
+            self.pause()
+            self.eventSink?(["event": "pause"])
+        }
+    }
+
     /// Ends the PiP session now and makes sure the window actually closes.
     ///
     /// `stopPictureInPicture()` only *asks* AVKit to animate back into the source
@@ -655,6 +689,8 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     public func dispose() {
+        NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+        backgroundPauseGeneration += 1
         pause()
         tearDownPictureInPicture()
         disposeSansEventChannel()
