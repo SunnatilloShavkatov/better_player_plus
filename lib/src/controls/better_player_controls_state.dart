@@ -22,6 +22,22 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget> extends State
 
   void cancelAndRestartTimer();
 
+  /// Keeps fullscreen controls clear of the display cutout, the rounded corners
+  /// and the gesture strip. A no-op outside fullscreen, where the player is just
+  /// a box on a page that has already dealt with its own insets.
+  ///
+  /// Insets by `viewPadding`, not `SafeArea`. `SafeArea` reads
+  /// `MediaQuery.padding`, and fullscreen runs under `SystemUiMode.immersiveSticky`
+  /// — the system bars are hidden, so that padding collapses to zero while the
+  /// camera cutout and the gesture area are still physically in the way.
+  /// `viewPadding` keeps reporting them whether the bars are drawn or not.
+  Widget fullScreenSafeArea(Widget child) {
+    if (!(betterPlayerController?.isFullScreen ?? false)) {
+      return child;
+    }
+    return Padding(padding: MediaQuery.viewPaddingOf(context), child: child);
+  }
+
   bool isVideoFinished(VideoPlayerValue? videoPlayerValue) =>
       videoPlayerValue?.position != null &&
       videoPlayerValue?.duration != null &&
