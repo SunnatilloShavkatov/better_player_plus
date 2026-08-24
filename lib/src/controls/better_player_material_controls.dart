@@ -81,14 +81,18 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
       },
       child: AbsorbPointer(
         absorbing: controlsNotVisible,
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            if (_wasLoading) Center(child: _buildLoadingWidget()) else _buildHitArea(),
-            Positioned(top: 0, left: 0, right: 0, child: _buildTopBar()),
-            Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
-            _buildNextVideoWidget(),
-          ],
+        // The bars are pinned to top: 0 / bottom: 0, so in fullscreen they land
+        // flush against the physical edges of the screen without this.
+        child: fullScreenSafeArea(
+          Stack(
+            fit: StackFit.expand,
+            children: [
+              if (_wasLoading) Center(child: _buildLoadingWidget()) else _buildHitArea(),
+              Positioned(top: 0, left: 0, right: 0, child: _buildTopBar()),
+              Positioned(bottom: 0, left: 0, right: 0, child: _buildBottomBar()),
+              _buildNextVideoWidget(),
+            ],
+          ),
         ),
       ),
     );

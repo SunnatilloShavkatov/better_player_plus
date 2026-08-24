@@ -254,7 +254,10 @@ extension BetterPlayerPlugin {
             }
             result(nil)
         case "dispose":
-            player.clear()
+            // `dispose()`, not `clear()`: `clear()` leaves the
+            // AVPictureInPictureController and its layer alive, so disposing a player
+            // while PiP was open left the window floating and playing forever.
+            player.dispose()
             disposeNotificationData(player)
             setRemoteCommandsNotificationNotActive()
             players.removeValue(forKey: textureId)
@@ -362,7 +365,9 @@ extension BetterPlayerPlugin {
     }
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
-        for (_, player) in players { player.disposeSansEventChannel() }
+        // `dispose()`, not `disposeSansEventChannel()`: the latter leaves the PiP
+        // controller alive, so a live PiP window would outlive the engine too.
+        for (_, player) in players { player.dispose() }
         players.removeAll()
     }
 }
