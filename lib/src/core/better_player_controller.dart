@@ -1233,7 +1233,7 @@ class BetterPlayerController {
 
       ///Delete files async
       for (final file in _tempFiles) {
-        file.delete();
+        file.delete().ignore();
       }
     }
   }

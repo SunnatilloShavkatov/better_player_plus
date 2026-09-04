@@ -79,3 +79,11 @@ pubspec.lock
 media/
 doc/
 /example/ios/Pods.disabled/
+
+# Package archive optimization for pub.dev
+.claude/
+example/android/
+example/ios/
+example/assets/
+**/build/
+**/.DS_Store

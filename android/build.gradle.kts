@@ -4,7 +4,7 @@ plugins {
 }
 
 group = "uz.shs.better_player_plus"
-version = "1.3.5"
+version = "1.4.0"
 
 val lifecycleVersion = "2.9.4"
 val annotationVersion = "1.9.1"
@@ -34,6 +34,7 @@ android {
 
     defaultConfig {
         minSdk = 24
+        consumerProguardFiles("consumer-rules.pro")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -55,20 +56,14 @@ dependencies {
     implementation("androidx.media:media:1.7.1")
 
     implementation("androidx.media3:media3-ui:$media3Version")
-    implementation("androidx.media3:media3-session:$media3Version")
     implementation("androidx.media3:media3-exoplayer:$media3Version")
     implementation("androidx.media3:media3-exoplayer-hls:$media3Version")
     implementation("androidx.media3:media3-exoplayer-dash:$media3Version")
-    implementation("androidx.media3:media3-datasource-cronet:$media3Version")
     implementation("androidx.media3:media3-exoplayer-smoothstreaming:$media3Version")
 
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-common:$lifecycleVersion")
-    implementation("androidx.lifecycle:lifecycle-common-java8:$lifecycleVersion")
 
     implementation("androidx.annotation:annotation:$annotationVersion")
     implementation("androidx.work:work-runtime:$workVersion")
-
-    //noinspection GradleDependency
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk7:2.2.20")
 }

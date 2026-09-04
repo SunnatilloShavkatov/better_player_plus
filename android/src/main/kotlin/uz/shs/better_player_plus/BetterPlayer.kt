@@ -771,6 +771,7 @@ internal class BetterPlayer(
         }
         textureEntry.release()
         eventChannel.setStreamHandler(null)
+        eventSink.setDelegate(null)
         surface?.release()
         exoPlayer?.release()
     }

@@ -1,3 +1,14 @@
+## 1.4.0
+
+* Inlined and modernized `visibility_detector` to remove the unmaintained external dependency and prevent Flutter/Dart version conflicts
+* Fixed static analysis issue (`prefer_if_elements_to_conditional_expressions`) restoring full 160/160 pub points
+* Optimized Android native dependencies by removing unused `media3-datasource-cronet`, `media3-session`, and obsolete artifacts
+* Added Android R8 / Proguard consumer rules (`consumer-rules.pro`) for safe and effective release shrinking
+* Fixed Android Activity memory leak on detachment (`onDetachedFromActivity`)
+* Fixed potential event queue leak on player disposal in Android (`BetterPlayer.kt`)
+* Hardened `BetterPlayerListVideoPlayer` against race conditions during fast list scrolling/disposal
+* Optimized package archive size on pub.dev by excluding heavy example native runners and test media in `.pubignore`
+
 ## 1.3.5
 
 * Fixed Android hardware decoder failure by adding software decoder fallback (thanks @ZhaosongRen)

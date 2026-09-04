@@ -61,8 +61,8 @@ class _BetterPlayerListVideoPlayerState extends State<BetterPlayerListVideoPlaye
 
   @override
   void dispose() {
-    _betterPlayerController!.dispose();
     _isDisposing = true;
+    _betterPlayerController?.dispose();
     super.dispose();
   }
 
@@ -76,15 +76,18 @@ class _BetterPlayerListVideoPlayerState extends State<BetterPlayerListVideoPlaye
   }
 
   Future<void> onVisibilityChanged(double visibleFraction) async {
-    final bool? isPlaying = _betterPlayerController!.isPlaying();
-    final bool? initialized = _betterPlayerController!.isVideoInitialized();
+    if (_isDisposing || _betterPlayerController == null) {
+      return;
+    }
+    final bool isPlaying = _betterPlayerController?.isPlaying() ?? false;
+    final bool initialized = _betterPlayerController?.isVideoInitialized() ?? false;
     if (visibleFraction >= widget.playFraction) {
-      if (widget.autoPlay && initialized! && !isPlaying! && !_isDisposing) {
-        await _betterPlayerController!.play();
+      if (widget.autoPlay && initialized && !isPlaying && !_isDisposing) {
+        await _betterPlayerController?.play();
       }
     } else {
-      if (widget.autoPause && initialized! && isPlaying! && !_isDisposing) {
-        await _betterPlayerController!.pause();
+      if (widget.autoPause && initialized && isPlaying && !_isDisposing) {
+        await _betterPlayerController?.pause();
       }
     }
   }
