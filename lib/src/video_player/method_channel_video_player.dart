@@ -111,7 +111,8 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
       _channel.invokeMethod<void>('setLooping', <String, dynamic>{'textureId': textureId, 'looping': looping});
 
   @override
-  Future<void> setAspectRatio(int? textureId, String aspectRatio) => _channel.invokeMethod<void>('setAspectRatio', <String, dynamic>{'textureId': textureId, 'ratio': aspectRatio});
+  Future<void> setAspectRatio(int? textureId, String aspectRatio) =>
+      _channel.invokeMethod<void>('setAspectRatio', <String, dynamic>{'textureId': textureId, 'ratio': aspectRatio});
 
   @override
   Future<void> play(int? textureId) => _channel.invokeMethod<void>('play', <String, dynamic>{'textureId': textureId});

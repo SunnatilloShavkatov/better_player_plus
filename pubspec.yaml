@@ -14,10 +14,9 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   collection: ^1.19.1
-  wakelock_plus: ^1.7.0
   path_provider: ^2.1.6
-  visibility_detector: ^0.4.0+2
-  flutter_widget_from_html_core: ^0.17.2
+  wakelock_plus: ^1.7.0
+  flutter_widget_from_html_core: ^0.17.3
 
 dev_dependencies:
   flutter_test:

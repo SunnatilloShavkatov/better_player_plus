@@ -111,9 +111,7 @@ class HlsPlaylistParser {
   }
 
   Future<HlsPlaylist> parse(Uri? uri, List<String> inputLineList) async {
-    final List<String> lineList = inputLineList
-        .where((line) => line.trim().isNotEmpty)
-        .toList();
+    final List<String> lineList = inputLineList.where((line) => line.trim().isNotEmpty).toList();
 
     if (!_checkPlaylistHeader(lineList[0])) {
       throw UnrecognizedInputFormatException('Input does not start with the #EXTM3U header.', uri);
@@ -227,10 +225,7 @@ class HlsPlaylistParser {
             variableDefinitions: variableDefinitions,
           );
           final String scheme = _parseEncryptionScheme(method);
-          final DrmInitData drmInitData = DrmInitData(
-            schemeType: scheme,
-            schemeData: [schemeData],
-          );
+          final DrmInitData drmInitData = DrmInitData(schemeType: scheme, schemeData: [schemeData]);
           sessionKeyDrmInitData.add(drmInitData);
         }
       } else if (line.startsWith(tagStreamInf)) {
@@ -724,11 +719,7 @@ class HlsPlaylistParser {
           playlistType = HlsMediaPlaylist.playlistTypeEvent;
         }
       } else if (line.startsWith(tagStart)) {
-        final String string = _parseStringAttr(
-          source: line,
-          pattern: regexpTimeOffset,
-          variableDefinitions: {},
-        )!;
+        final String string = _parseStringAttr(source: line, pattern: regexpTimeOffset, variableDefinitions: {})!;
         startOffsetUs = (double.parse(string) * 1000000).toInt();
       } else if (line.startsWith(tagInitSegment)) {
         final String? uri = _parseStringAttr(

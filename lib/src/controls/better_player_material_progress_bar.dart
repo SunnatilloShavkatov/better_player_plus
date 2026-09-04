@@ -200,7 +200,11 @@ class _ProgressBarPainter extends CustomPainter {
       colors.backgroundPaint,
     );
     final duration = value.duration;
-    if (!value.initialized || duration == null || duration.inMilliseconds <= 0 || !size.width.isFinite || size.width <= 0) {
+    if (!value.initialized ||
+        duration == null ||
+        duration.inMilliseconds <= 0 ||
+        !size.width.isFinite ||
+        size.width <= 0) {
       return;
     }
     final double playedPartPercent = _safeFraction(value.position, duration);

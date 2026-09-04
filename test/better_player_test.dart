@@ -1,7 +1,6 @@
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:visibility_detector/visibility_detector.dart';
 import 'better_player_mock_controller.dart';
 import 'better_player_test_utils.dart';
 
