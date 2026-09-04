@@ -81,3 +81,10 @@ build/
 /example/ios/Podfile.lock
 pubspec.lock
 /example/ios/Pods.disabled/
+
+# Claude Code & AI local configs
+CLAUDE.local.md
+AGENTS.local.md
+.claude/*.local.*
+.agents/*.local.*
+.mcp.json

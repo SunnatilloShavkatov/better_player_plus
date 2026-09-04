@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(flutter analyze*)",
+      "Bash(dart analyze*)",
+      "Bash(dart format*)",
+      "Bash(flutter test*)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(bash .claude/hooks/check-versions.sh*)"
+    ],
+    "deny": [
+      "Bash(git push --force*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf /)"
+    ]
+  }
+}
