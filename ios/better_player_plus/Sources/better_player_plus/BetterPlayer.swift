@@ -246,8 +246,16 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
                         guard let self = self, !self.disposed else { return }
                         if videoTrack.statusOfValue(forKey: "preferredTransform", error: nil) == .loaded {
                             self.preferredTransform = self.fixTransform(videoTrack)
+                            // Skip the video composition in the Simulator: an AVPlayerItem
+                            // with a videoComposition renders black there (audio keeps
+                            // playing) — the compositing render path has no working
+                            // implementation in the Simulator. AVPlayerLayer applies
+                            // preferredTransform on its own, so rotated videos still
+                            // display correctly; devices keep the composition unchanged.
+                            #if !targetEnvironment(simulator)
                             let videoComposition = self.getVideoComposition(transform: self.preferredTransform, asset: asset, videoTrack: videoTrack)
                             item.videoComposition = videoComposition
+                            #endif
                         }
                     }
                 }
