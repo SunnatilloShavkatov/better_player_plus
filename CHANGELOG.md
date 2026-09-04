@@ -1,3 +1,11 @@
+## 1.4.1
+
+* Added support for Built-in Kotlin on Android (AGP 9.0+) while maintaining full backward compatibility with Flutter 3.41.0+ and AGP < 9 (#128)
+* Fixed iOS native player memory leak on dispose: unregister `dataSourceDict`, break FlutterEventChannel retain cycle, detach player layers, and clean up notification center (#129)
+* Fixed iOS latent KVO crash on deallocation: weakly track `observedItem` to safely unregister observers, and ensure observers are removed before `currentItem` checks in `clear()` (#129)
+* Preserved iOS background transition notification handler when playback ends or loops (#129)
+* Upgraded Android Media3 dependencies to 1.11.0
+
 ## 1.4.0
 
 * Inlined and modernized `visibility_detector` to remove the unmaintained external dependency and prevent Flutter/Dart version conflicts

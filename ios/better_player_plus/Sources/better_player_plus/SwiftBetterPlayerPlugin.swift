@@ -198,13 +198,24 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
         }
         timeObserverIdDict.removeAll()
     }
+
+    private func disposeAllPlayers() {
+        for (_, player) in players {
+            player.dispose()
+            disposeNotificationData(player)
+        }
+        players.removeAll()
+        dataSourceDict.removeAll()
+        timeObserverIdDict.removeAll()
+        artworkImageDict.removeAll()
+        setRemoteCommandsNotificationNotActive()
+    }
 }
 
 extension BetterPlayerPlugin {
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         if call.method == "init" {
-            for (_, player) in players { player.dispose() }
-            players.removeAll()
+            disposeAllPlayers()
             result(nil)
             return
         }
@@ -261,6 +272,7 @@ extension BetterPlayerPlugin {
             disposeNotificationData(player)
             setRemoteCommandsNotificationNotActive()
             players.removeValue(forKey: textureId)
+            dataSourceDict.removeValue(forKey: textureId)
             if players.isEmpty { try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation]) }
             result(nil)
         case "setLooping":
@@ -365,9 +377,6 @@ extension BetterPlayerPlugin {
     }
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
-        // `dispose()`, not `disposeSansEventChannel()`: the latter leaves the PiP
-        // controller alive, so a live PiP window would outlive the engine too.
-        for (_, player) in players { player.dispose() }
-        players.removeAll()
+        disposeAllPlayers()
     }
 }

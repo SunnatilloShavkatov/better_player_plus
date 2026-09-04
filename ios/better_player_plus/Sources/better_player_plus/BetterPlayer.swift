@@ -36,6 +36,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
 
     public var pictureInPicture: Bool = false
     public var observersAdded: Bool = false
+    private weak var observedItem: AVPlayerItem?
     public var stalledCount: Int = 0
     public var isStalledCheckStarted: Bool = false
     public var playerRate: Float = 1.0
@@ -113,6 +114,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
             item.addObserver(self, forKeyPath: "playbackBufferEmpty", options: [], context: &playbackBufferEmptyContext)
             item.addObserver(self, forKeyPath: "playbackBufferFull", options: [], context: &playbackBufferFullContext)
             NotificationCenter.default.addObserver(self, selector: #selector(itemDidPlayToEndTime(_:)), name: .AVPlayerItemDidPlayToEndTime, object: item)
+            observedItem = item
             observersAdded = true
         }
     }
@@ -120,13 +122,15 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     private func removeObservers() {
         if observersAdded {
             player.removeObserver(self, forKeyPath: "rate", context: nil)
-            player.currentItem?.removeObserver(self, forKeyPath: "status", context: &statusContext)
-            player.currentItem?.removeObserver(self, forKeyPath: "presentationSize", context: &presentationSizeContext)
-            player.currentItem?.removeObserver(self, forKeyPath: "loadedTimeRanges", context: &timeRangeContext)
-            player.currentItem?.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp", context: &playbackLikelyToKeepUpContext)
-            player.currentItem?.removeObserver(self, forKeyPath: "playbackBufferEmpty", context: &playbackBufferEmptyContext)
-            player.currentItem?.removeObserver(self, forKeyPath: "playbackBufferFull", context: &playbackBufferFullContext)
-            NotificationCenter.default.removeObserver(self)
+            let item = observedItem ?? player.currentItem
+            item?.removeObserver(self, forKeyPath: "status", context: &statusContext)
+            item?.removeObserver(self, forKeyPath: "presentationSize", context: &presentationSizeContext)
+            item?.removeObserver(self, forKeyPath: "loadedTimeRanges", context: &timeRangeContext)
+            item?.removeObserver(self, forKeyPath: "playbackLikelyToKeepUp", context: &playbackLikelyToKeepUpContext)
+            item?.removeObserver(self, forKeyPath: "playbackBufferEmpty", context: &playbackBufferEmptyContext)
+            item?.removeObserver(self, forKeyPath: "playbackBufferFull", context: &playbackBufferFullContext)
+            NotificationCenter.default.removeObserver(self, name: .AVPlayerItemDidPlayToEndTime, object: item)
+            observedItem = nil
             observersAdded = false
         }
     }
@@ -685,8 +689,8 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         disposed = false
         failedCount = 0
         key = nil
-        guard player.currentItem != nil else { return }
         removeObservers()
+        guard player.currentItem != nil else { return }
         player.currentItem?.asset.cancelLoading()
     }
 
@@ -697,16 +701,28 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     public func dispose() {
-        NotificationCenter.default.removeObserver(self, name: UIApplication.didEnterBackgroundNotification, object: nil)
+        NotificationCenter.default.removeObserver(self)
         backgroundPauseGeneration += 1
         pause()
         tearDownPictureInPicture()
+        (playerView as? BetterPlayerView)?.player = nil
+        (previousPlayerView as? BetterPlayerView)?.player = nil
+        playerView = nil
+        previousPlayerView = nil
         disposeSansEventChannel()
         eventChannel?.setStreamHandler(nil)
+        eventChannel = nil
+        eventSink = nil
+        loaderDelegate = nil
         // Only after disposeSansEventChannel() -> clear() has pulled the KVO
         // observers: clear() bails out early when there is no current item, so
         // dropping the item first would leave them registered and crash on dealloc.
         player.replaceCurrentItem(with: nil)
         disposed = true
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+        removeObservers()
     }
 }
