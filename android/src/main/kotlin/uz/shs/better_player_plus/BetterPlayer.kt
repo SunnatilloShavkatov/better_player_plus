@@ -28,7 +28,6 @@ import androidx.media3.ui.PlayerNotificationManager.MediaDescriptionAdapter
 import androidx.media3.ui.PlayerNotificationManager.BitmapCallback
 import androidx.work.OneTimeWorkRequest
 import android.util.Log
-import android.view.Surface
 import androidx.annotation.OptIn
 import androidx.lifecycle.Observer
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -81,7 +80,7 @@ import androidx.core.net.toUri
 internal class BetterPlayer(
     context: Context,
     private val eventChannel: EventChannel,
-    private val textureEntry: SurfaceProducer,
+    private val surfaceProducer: SurfaceProducer,
     customDefaultLoadControl: CustomDefaultLoadControl?,
     result: MethodChannel.Result
 ) {
@@ -90,8 +89,6 @@ internal class BetterPlayer(
     private val trackSelector: DefaultTrackSelector = DefaultTrackSelector(context)
     private val loadControl: LoadControl
     private var isInitialized = false
-    private var surface: Surface? = null
-    private var needsSurface = false
     private var key: String? = null
     private var playerNotificationManager: PlayerNotificationManager? = null
     private var refreshHandler: Handler? = null
@@ -124,7 +121,7 @@ internal class BetterPlayer(
             .build()
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
-        setupVideoPlayer(eventChannel, textureEntry, result)
+        setupVideoPlayer(eventChannel, surfaceProducer, result)
     }
 
     @OptIn(UnstableApi::class)
@@ -451,7 +448,7 @@ internal class BetterPlayer(
     }
 
     private fun setupVideoPlayer(
-        eventChannel: EventChannel, textureEntry: SurfaceProducer, result: MethodChannel.Result
+        eventChannel: EventChannel, surfaceProducer: SurfaceProducer, result: MethodChannel.Result
     ) {
         eventChannel.setStreamHandler(
             object : EventChannel.StreamHandler {
@@ -465,24 +462,16 @@ internal class BetterPlayer(
             },
         )
         // The engine may destroy the surface (e.g. in background) and hand out a new one later.
-        textureEntry.setCallback(object : SurfaceProducer.Callback {
+        surfaceProducer.setCallback(object : SurfaceProducer.Callback {
             override fun onSurfaceAvailable() {
-                if (needsSurface) {
-                    surface = textureEntry.surface
-                    exoPlayer?.setVideoSurface(surface)
-                    needsSurface = false
-                }
+                exoPlayer?.setVideoSurface(surfaceProducer.surface)
             }
 
             override fun onSurfaceCleanup() {
                 exoPlayer?.setVideoSurface(null)
-                surface = null
-                needsSurface = true
             }
         })
-        surface = textureEntry.surface
-        exoPlayer?.setVideoSurface(surface)
-        needsSurface = surface == null
+        exoPlayer?.setVideoSurface(surfaceProducer.surface)
         setAudioAttributes(exoPlayer, true)
         exoPlayer?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -531,7 +520,7 @@ internal class BetterPlayer(
             }
         })
         val reply: MutableMap<String, Any> = HashMap()
-        reply["textureId"] = textureEntry.id()
+        reply["textureId"] = surfaceProducer.id()
         result.success(reply)
     }
 
@@ -629,16 +618,17 @@ internal class BetterPlayer(
                     var width = videoFormat.width
                     var height = videoFormat.height
                     val rotationDegrees = videoFormat.rotationDegrees
-                    // Switch the width/height if video was taken in portrait mode. Only when the
-                    // producer applies the rotation: otherwise the frames arrive unrotated.
-                    if (textureEntry.handlesCropAndRotation() &&
-                        (rotationDegrees == 90 || rotationDegrees == 270)
-                    ) {
+                    // Switch the width/height if video was taken in portrait mode
+                    if (rotationDegrees == 90 || rotationDegrees == 270) {
                         width = videoFormat.height
                         height = videoFormat.width
                     }
                     event["width"] = width
                     event["height"] = height
+                    // Unless the producer applies the rotation itself, frames arrive unrotated
+                    // and the Dart side has to rotate the texture.
+                    event["rotationCorrection"] =
+                        if (surfaceProducer.handlesCropAndRotation()) 0 else rotationDegrees
                 }
             }
             eventSink.success(event)
@@ -790,26 +780,23 @@ internal class BetterPlayer(
         if (isInitialized) {
             exoPlayer?.stop()
         }
-        textureEntry.setCallback(null)
+        surfaceProducer.setCallback(null)
         eventChannel.setStreamHandler(null)
         eventSink.setDelegate(null)
         // The player must be released before the producer that owns its surface.
         exoPlayer?.release()
-        textureEntry.release()
+        surfaceProducer.release()
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
         val that = other as BetterPlayer
-        if (if (exoPlayer != null) exoPlayer != that.exoPlayer else that.exoPlayer != null) return false
-        return if (surface != null) surface == that.surface else that.surface == null
+        return exoPlayer == that.exoPlayer
     }
 
     override fun hashCode(): Int {
-        var result = exoPlayer?.hashCode() ?: 0
-        result = 31 * result + (surface?.hashCode() ?: 0)
-        return result
+        return exoPlayer?.hashCode() ?: 0
     }
 
     companion object {
