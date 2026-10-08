@@ -34,6 +34,7 @@ class VideoPlayerValue {
     this.errorDescription,
     this.isPip = false,
     this.aspectRatioIOS = '',
+    this.rotationCorrection = 0,
   });
 
   /// Returns an instance with a `null` [Duration].
@@ -90,6 +91,9 @@ class VideoPlayerValue {
   //Aspect Ratio of the video for iOS
   final String aspectRatioIOS;
 
+  /// Clockwise rotation, in degrees, the texture needs to be displayed upright.
+  final int rotationCorrection;
+
   /// Indicates whether or not the video has been loaded and is ready to play.
   bool get initialized => duration != null;
 
@@ -126,6 +130,7 @@ class VideoPlayerValue {
     double? speed,
     bool? isPip,
     String? aspectRatioIOS,
+    int? rotationCorrection,
   }) => VideoPlayerValue(
     duration: duration ?? this.duration,
     size: size ?? this.size,
@@ -140,6 +145,7 @@ class VideoPlayerValue {
     errorDescription: errorDescription ?? this.errorDescription,
     isPip: isPip ?? this.isPip,
     aspectRatioIOS: aspectRatioIOS ?? this.aspectRatioIOS,
+    rotationCorrection: rotationCorrection ?? this.rotationCorrection,
   );
 
   @override
@@ -155,6 +161,7 @@ class VideoPlayerValue {
       'isBuffering: $isBuffering, '
       'volume: $volume, '
       'aspectRatioIOS: $aspectRatioIOS, '
+      'rotationCorrection: $rotationCorrection, '
       'errorDescription: $errorDescription)';
 }
 
@@ -213,7 +220,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       videoEventStreamController.add(event);
       switch (event.eventType) {
         case VideoEventType.initialized:
-          value = value.copyWith(duration: event.duration, size: event.size);
+          value = value.copyWith(
+            duration: event.duration,
+            size: event.size,
+            rotationCorrection: event.rotationCorrection,
+          );
           _initializingCompleter.complete(null);
           _applyPlayPause();
         case VideoEventType.completed:
@@ -644,9 +655,11 @@ class _VideoPlayerState extends State<VideoPlayer> {
   _VideoPlayerState() {
     _listener = () {
       final int? newTextureId = widget.controller!.textureId;
-      if (newTextureId != _textureId) {
+      final int newRotationCorrection = widget.controller!.value.rotationCorrection;
+      if (newTextureId != _textureId || newRotationCorrection != _rotationCorrection) {
         setState(() {
           _textureId = newTextureId;
+          _rotationCorrection = newRotationCorrection;
         });
       }
     };
@@ -654,11 +667,13 @@ class _VideoPlayerState extends State<VideoPlayer> {
 
   late VoidCallback _listener;
   int? _textureId;
+  int _rotationCorrection = 0;
 
   @override
   void initState() {
     super.initState();
     _textureId = widget.controller!.textureId;
+    _rotationCorrection = widget.controller!.value.rotationCorrection;
     // Need to listen for initialization events since the actual texture ID
     // becomes available after asynchronous initialization finishes.
     widget.controller!.addListener(_listener);
@@ -669,6 +684,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     super.didUpdateWidget(oldWidget);
     oldWidget.controller!.removeListener(_listener);
     _textureId = widget.controller!.textureId;
+    _rotationCorrection = widget.controller!.value.rotationCorrection;
     widget.controller!.addListener(_listener);
   }
 
@@ -679,7 +695,13 @@ class _VideoPlayerState extends State<VideoPlayer> {
   }
 
   @override
-  Widget build(BuildContext context) => _textureId == null ? Container() : _videoPlayerPlatform.buildView(_textureId);
+  Widget build(BuildContext context) {
+    if (_textureId == null) {
+      return Container();
+    }
+    final Widget view = _videoPlayerPlatform.buildView(_textureId);
+    return _rotationCorrection == 0 ? view : RotatedBox(quarterTurns: _rotationCorrection ~/ 90, child: view);
+  }
 }
 
 /// Used to configure the [VideoProgressIndicator] widget's colors for how it

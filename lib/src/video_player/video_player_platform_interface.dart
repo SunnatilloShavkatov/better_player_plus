@@ -376,6 +376,7 @@ class VideoEvent {
     this.size,
     this.buffered,
     this.position,
+    this.rotationCorrection = 0,
   });
 
   /// The type of the event.
@@ -404,6 +405,11 @@ class VideoEvent {
   ///Seek position
   final Duration? position;
 
+  /// Clockwise rotation, in degrees, the texture needs to be displayed upright.
+  ///
+  /// Only used if [eventType] is [VideoEventType.initialized].
+  final int rotationCorrection;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -413,10 +419,12 @@ class VideoEvent {
           eventType == other.eventType &&
           duration == other.duration &&
           size == other.size &&
+          rotationCorrection == other.rotationCorrection &&
           listEquals(buffered, other.buffered);
 
   @override
-  int get hashCode => eventType.hashCode ^ duration.hashCode ^ size.hashCode ^ buffered.hashCode;
+  int get hashCode =>
+      eventType.hashCode ^ duration.hashCode ^ size.hashCode ^ rotationCorrection.hashCode ^ buffered.hashCode;
 }
 
 /// Type of the event.

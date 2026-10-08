@@ -19,7 +19,7 @@ import uz.shs.better_player_plus.DataSourceUtils.getUserAgent
 import uz.shs.better_player_plus.DataSourceUtils.isHTTP
 import uz.shs.better_player_plus.DataSourceUtils.getDataSourceFactory
 import io.flutter.plugin.common.EventChannel
-import io.flutter.view.TextureRegistry.SurfaceTextureEntry
+import io.flutter.view.TextureRegistry.SurfaceProducer
 import io.flutter.plugin.common.MethodChannel
 import androidx.media3.ui.PlayerNotificationManager
 import androidx.work.WorkManager
@@ -28,7 +28,6 @@ import androidx.media3.ui.PlayerNotificationManager.MediaDescriptionAdapter
 import androidx.media3.ui.PlayerNotificationManager.BitmapCallback
 import androidx.work.OneTimeWorkRequest
 import android.util.Log
-import android.view.Surface
 import androidx.annotation.OptIn
 import androidx.lifecycle.Observer
 import androidx.media3.extractor.DefaultExtractorsFactory
@@ -81,7 +80,7 @@ import androidx.core.net.toUri
 internal class BetterPlayer(
     context: Context,
     private val eventChannel: EventChannel,
-    private val textureEntry: SurfaceTextureEntry,
+    private val surfaceProducer: SurfaceProducer,
     customDefaultLoadControl: CustomDefaultLoadControl?,
     result: MethodChannel.Result
 ) {
@@ -90,7 +89,6 @@ internal class BetterPlayer(
     private val trackSelector: DefaultTrackSelector = DefaultTrackSelector(context)
     private val loadControl: LoadControl
     private var isInitialized = false
-    private var surface: Surface? = null
     private var key: String? = null
     private var playerNotificationManager: PlayerNotificationManager? = null
     private var refreshHandler: Handler? = null
@@ -123,7 +121,7 @@ internal class BetterPlayer(
             .build()
         workManager = WorkManager.getInstance(context)
         workerObserverMap = HashMap()
-        setupVideoPlayer(eventChannel, textureEntry, result)
+        setupVideoPlayer(eventChannel, surfaceProducer, result)
     }
 
     @OptIn(UnstableApi::class)
@@ -450,7 +448,7 @@ internal class BetterPlayer(
     }
 
     private fun setupVideoPlayer(
-        eventChannel: EventChannel, textureEntry: SurfaceTextureEntry, result: MethodChannel.Result
+        eventChannel: EventChannel, surfaceProducer: SurfaceProducer, result: MethodChannel.Result
     ) {
         eventChannel.setStreamHandler(
             object : EventChannel.StreamHandler {
@@ -463,8 +461,17 @@ internal class BetterPlayer(
                 }
             },
         )
-        surface = Surface(textureEntry.surfaceTexture())
-        exoPlayer?.setVideoSurface(surface)
+        // The engine may destroy the surface (e.g. in background) and hand out a new one later.
+        surfaceProducer.setCallback(object : SurfaceProducer.Callback {
+            override fun onSurfaceAvailable() {
+                exoPlayer?.setVideoSurface(surfaceProducer.surface)
+            }
+
+            override fun onSurfaceCleanup() {
+                exoPlayer?.setVideoSurface(null)
+            }
+        })
+        exoPlayer?.setVideoSurface(surfaceProducer.surface)
         setAudioAttributes(exoPlayer, true)
         exoPlayer?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -513,7 +520,7 @@ internal class BetterPlayer(
             }
         })
         val reply: MutableMap<String, Any> = HashMap()
-        reply["textureId"] = textureEntry.id()
+        reply["textureId"] = surfaceProducer.id()
         result.success(reply)
     }
 
@@ -618,6 +625,10 @@ internal class BetterPlayer(
                     }
                     event["width"] = width
                     event["height"] = height
+                    // Unless the producer applies the rotation itself, frames arrive unrotated
+                    // and the Dart side has to rotate the texture.
+                    event["rotationCorrection"] =
+                        if (surfaceProducer.handlesCropAndRotation()) 0 else rotationDegrees
                 }
             }
             eventSink.success(event)
@@ -769,25 +780,23 @@ internal class BetterPlayer(
         if (isInitialized) {
             exoPlayer?.stop()
         }
-        textureEntry.release()
+        surfaceProducer.setCallback(null)
         eventChannel.setStreamHandler(null)
         eventSink.setDelegate(null)
-        surface?.release()
+        // The player must be released before the producer that owns its surface.
         exoPlayer?.release()
+        surfaceProducer.release()
     }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || javaClass != other.javaClass) return false
         val that = other as BetterPlayer
-        if (if (exoPlayer != null) exoPlayer != that.exoPlayer else that.exoPlayer != null) return false
-        return if (surface != null) surface == that.surface else that.surface == null
+        return exoPlayer == that.exoPlayer
     }
 
     override fun hashCode(): Int {
-        var result = exoPlayer?.hashCode() ?: 0
-        result = 31 * result + (surface?.hashCode() ?: 0)
-        return result
+        return exoPlayer?.hashCode() ?: 0
     }
 
     companion object {
