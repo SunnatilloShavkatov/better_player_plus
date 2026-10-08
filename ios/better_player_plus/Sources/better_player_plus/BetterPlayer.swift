@@ -41,6 +41,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     public var isStalledCheckStarted: Bool = false
     public var playerRate: Float = 1.0
     public var overriddenDuration: Int = 0
+    public var preferredForwardBufferDuration: TimeInterval = 0
     public var lastAvPlayerTimeControlStatus: AVPlayer.TimeControlStatus? = nil
 
     private var pipController: AVPictureInPictureController?
@@ -136,6 +137,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     @objc private func itemDidPlayToEndTime(_ notification: Notification) {
+        guard isPlaying else { return }
         if isLooping {
             if let p = notification.object as? AVPlayerItem {
                 p.seek(to: .zero, completionHandler: nil)
@@ -239,6 +241,9 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         self.stalledCount = 0
         self.isStalledCheckStarted = false
         self.playerRate = 1
+        if preferredForwardBufferDuration > 0 {
+            item.preferredForwardBufferDuration = preferredForwardBufferDuration
+        }
         player.replaceCurrentItem(with: item)
 
         let asset = item.asset
@@ -275,6 +280,10 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     private func startStalledCheck() {
+        guard isPlaying else {
+            isStalledCheckStarted = false
+            return
+        }
         if let currentItem = player.currentItem {
             if currentItem.isPlaybackLikelyToKeepUp || (availableDuration() - CMTimeGetSeconds(currentItem.currentTime())) > 10.0 {
                 play()
@@ -448,6 +457,9 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     public func pause() {
+        NSObject.cancelPreviousPerformRequests(withTarget: self, selector: #selector(startStalledCheckObjC), object: nil)
+        isStalledCheckStarted = false
+        stalledCount = 0
         isPlaying = false
         updatePlayingState()
     }

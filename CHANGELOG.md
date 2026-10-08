@@ -1,3 +1,8 @@
+## Unreleased
+
+* Fixed iOS stall check resuming a player that was paused while it was still buffering (a pause landing in the first second of playback was undone, and looping videos kept streaming off screen)
+* iOS now honours `BetterPlayerBufferingConfiguration.maxBufferMs` through `AVPlayerItem.preferredForwardBufferDuration` when a bounded value is passed; the default keeps AVFoundation's own behaviour
+
 ## 1.4.1
 
 * Added support for Built-in Kotlin on Android (AGP 9.0+) while maintaining full backward compatibility with Flutter 3.41.0+ and AGP < 9 (#128)

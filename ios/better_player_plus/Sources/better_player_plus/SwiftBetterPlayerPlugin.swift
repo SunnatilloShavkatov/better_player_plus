@@ -42,6 +42,14 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
         return player
     }
 
+    private static let unboundedMaxBufferMs = 6_553_600
+
+    private func applyBufferingConfiguration(_ args: [String: Any]?, to player: BetterPlayer) {
+        guard let maxBufferMs = (args?["maxBufferMs"] as? NSNumber)?.intValue,
+              maxBufferMs > 0, maxBufferMs < BetterPlayerPlugin.unboundedMaxBufferMs else { return }
+        player.preferredForwardBufferDuration = TimeInterval(maxBufferMs) / 1000
+    }
+
     private func newTextureId() -> Int64 {
         texturesCount += 1
         return texturesCount
@@ -221,6 +229,7 @@ extension BetterPlayerPlugin {
         }
         if call.method == "create" {
             let player = BetterPlayer(frame: .zero)
+            applyBufferingConfiguration(call.arguments as? [String: Any], to: player)
             onPlayerSetup(player, result: result)
             return
         }
