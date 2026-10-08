@@ -1,7 +1,7 @@
 ///Configuration class used to setup better buffering experience or setup custom
 ///load settings. Currently used only in Android.
 class BetterPlayerBufferingConfiguration {
-  const BetterPlayerBufferingConfiguration({
+  const new({
     this.minBufferMs = defaultMinBufferMs,
     this.maxBufferMs = defaultMaxBufferMs,
     this.bufferForPlaybackMs = defaultBufferForPlaybackMs,

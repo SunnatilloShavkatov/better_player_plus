@@ -9,3 +9,7 @@ analyzer:
     cascade_invocations: ignore
     flutter_style_todos: ignore
     discarded_futures: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**

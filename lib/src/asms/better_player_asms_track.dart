@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 /// Represents HLS / DASH track which can be played within player
 @immutable
 class BetterPlayerAsmsTrack {
-  const BetterPlayerAsmsTrack(
+  const new(
     this.id,
     this.width,
     this.height,
@@ -13,7 +13,7 @@ class BetterPlayerAsmsTrack {
     this.mimeType,
   );
 
-  factory BetterPlayerAsmsTrack.defaultTrack() => const BetterPlayerAsmsTrack('', 0, 0, 0, 0, '', '');
+  factory defaultTrack() => const BetterPlayerAsmsTrack('', 0, 0, 0, 0, '', '');
 
   ///Id of the track
   final String? id;

@@ -7,22 +7,22 @@ import 'package:better_player_plus/better_player_plus.dart';
 import 'package:better_player_plus/src/configuration/better_player_controller_event.dart';
 import 'package:better_player_plus/src/core/better_player_utils.dart';
 import 'package:better_player_plus/src/core/better_player_with_controls.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 ///Widget which uses provided controller to render video player.
 class BetterPlayer extends StatefulWidget {
-  const BetterPlayer({super.key, required this.controller});
+  const new({super.key, required this.controller});
 
-  factory BetterPlayer.network(String url, {BetterPlayerConfiguration? betterPlayerConfiguration}) => BetterPlayer(
+  factory network(String url, {BetterPlayerConfiguration? betterPlayerConfiguration}) => BetterPlayer(
     controller: BetterPlayerController(
       betterPlayerConfiguration ?? const BetterPlayerConfiguration(),
       betterPlayerDataSource: BetterPlayerDataSource(BetterPlayerDataSourceType.network, url),
     ),
   );
 
-  factory BetterPlayer.file(String url, {BetterPlayerConfiguration? betterPlayerConfiguration}) => BetterPlayer(
+  factory file(String url, {BetterPlayerConfiguration? betterPlayerConfiguration}) => BetterPlayer(
     controller: BetterPlayerController(
       betterPlayerConfiguration ?? const BetterPlayerConfiguration(),
       betterPlayerDataSource: BetterPlayerDataSource(BetterPlayerDataSourceType.file, url),

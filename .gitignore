@@ -88,3 +88,4 @@ AGENTS.local.md
 .claude/*.local.*
 .agents/*.local.*
 .mcp.json
+/example/android/.kotlin/

@@ -1,10 +1,10 @@
 // Flutter imports:
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 ///Configuration of subtitles - colors/padding/font. Used in
 ///BetterPlayerConfiguration.
 class BetterPlayerSubtitlesConfiguration {
-  const BetterPlayerSubtitlesConfiguration({
+  const new({
     this.fontSize = 14,
     this.fontColor = Colors.white,
     this.outlineEnabled = true,

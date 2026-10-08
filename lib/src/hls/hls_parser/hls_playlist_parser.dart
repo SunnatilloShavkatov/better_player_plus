@@ -19,9 +19,9 @@ import 'package:better_player_plus/src/hls/hls_parser/variant_info.dart';
 import 'package:collection/collection.dart' show IterableExtension;
 
 class HlsPlaylistParser {
-  HlsPlaylistParser(this.masterPlaylist);
+  new(this.masterPlaylist);
 
-  factory HlsPlaylistParser.create({HlsMasterPlaylist? masterPlaylist}) {
+  factory create({HlsMasterPlaylist? masterPlaylist}) {
     masterPlaylist ??= HlsMasterPlaylist();
     return HlsPlaylistParser(masterPlaylist);
   }

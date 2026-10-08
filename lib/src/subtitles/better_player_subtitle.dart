@@ -1,7 +1,7 @@
 import 'package:better_player_plus/src/core/better_player_utils.dart';
 
 class BetterPlayerSubtitle {
-  factory BetterPlayerSubtitle(String value, bool isWebVTT) {
+  factory(String value, bool isWebVTT) {
     try {
       if (!value.startsWith('NOTE') && !value.startsWith('LANGUAGE')) {
         final scanner = value.split('\n');
@@ -18,7 +18,7 @@ class BetterPlayerSubtitle {
     return BetterPlayerSubtitle._();
   }
 
-  BetterPlayerSubtitle._({this.index, this.start, this.end, this.texts});
+  new _({this.index, this.start, this.end, this.texts});
 
   static const String timerSeparator = ' --> ';
   final int? index;

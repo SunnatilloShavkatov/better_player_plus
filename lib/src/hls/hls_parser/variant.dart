@@ -1,7 +1,7 @@
 import 'package:better_player_plus/src/hls/hls_parser/format.dart';
 
 class Variant {
-  Variant({
+  new({
     required this.url,
     required this.format,
     required this.videoGroupId,

@@ -10,13 +10,13 @@ import 'package:better_player_plus/src/subtitles/better_player_subtitles_factory
 import 'package:better_player_plus/src/video_player/video_player.dart';
 import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
 import 'package:collection/collection.dart' show IterableExtension;
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
 ///Class used to control overall Better Player behavior. Main class to change
 ///state of Better Player.
 class BetterPlayerController {
-  BetterPlayerController(
+  new(
     this.betterPlayerConfiguration, {
     this.betterPlayerPlaylistConfiguration,
     BetterPlayerDataSource? betterPlayerDataSource,

@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 ///ClearKey helper class to generate the key
 class BetterPlayerClearKeyUtils {
-  const BetterPlayerClearKeyUtils._();
+  const new _();
 
   static final _byteMask = BigInt.from(0xff);
 

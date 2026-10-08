@@ -1,9 +1,9 @@
 // Flutter imports:
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 final class BetterPlayerUtils {
-  const BetterPlayerUtils._();
+  const new _();
 
   static String formatBitrate(int bitrate) {
     if (bitrate < 1000) {

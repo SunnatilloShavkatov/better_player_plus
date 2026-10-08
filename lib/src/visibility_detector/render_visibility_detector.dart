@@ -264,7 +264,7 @@ mixin RenderVisibilityDetectorBase on RenderObject {
 /// The [RenderObject] corresponding to the [VisibilityDetector] widget.
 class RenderVisibilityDetector extends RenderProxyBox with RenderVisibilityDetectorBase {
   /// Constructor.  See the corresponding properties for parameter details.
-  RenderVisibilityDetector({
+  new({
     RenderBox? child,
     required this.key,
     required VisibilityChangedCallback? onVisibilityChanged,
@@ -285,7 +285,7 @@ class RenderVisibilityDetector extends RenderProxyBox with RenderVisibilityDetec
 /// [SliverVisibilityDetector] and [VisibilityDetectorLayer].
 class RenderSliverVisibilityDetector extends RenderProxySliver with RenderVisibilityDetectorBase {
   /// Constructor.  See the corresponding properties for parameter details.
-  RenderSliverVisibilityDetector({
+  new({
     RenderSliver? sliver,
     required this.key,
     required VisibilityChangedCallback? onVisibilityChanged,

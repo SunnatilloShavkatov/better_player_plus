@@ -2,7 +2,7 @@ import 'package:better_player_plus/src/hls/hls_parser/exception.dart';
 import 'package:better_player_plus/src/hls/hls_parser/mime_types.dart';
 
 class LibUtil {
-  const LibUtil._();
+  const new _();
 
   static bool startsWith(List<int> source, List<int> checker) {
     for (int i = 0; i < checker.length; i++) {
@@ -89,7 +89,7 @@ class LibUtil {
 }
 
 class Util {
-  const Util._();
+  const new _();
 
   static const int selectionFlagDefault = 1;
   static const int selectionFlagForced = 1 << 1; // 2

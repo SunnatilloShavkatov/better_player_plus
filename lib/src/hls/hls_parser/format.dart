@@ -4,7 +4,7 @@ import 'package:better_player_plus/src/hls/hls_parser/util.dart';
 
 /// Representation of a media format.
 class Format {
-  Format({
+  new({
     this.id,
     this.label,
     this.selectionFlags,
@@ -26,7 +26,7 @@ class Format {
     this.isDefault,
   }) : language = language?.toLowerCase();
 
-  factory Format.createVideoContainerFormat({
+  factory createVideoContainerFormat({
     String? id,
     String? label,
     String? containerMimeType,

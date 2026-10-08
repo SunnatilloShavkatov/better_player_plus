@@ -26,7 +26,7 @@ class VisibilityDetector extends SingleChildRenderObjectWidget {
   /// among all [VisibilityDetector] and [SliverVisibilityDetector] widgets.
   ///
   /// `onVisibilityChanged` may be `null` to disable this [VisibilityDetector].
-  const VisibilityDetector({required Key key, required Widget child, required this.onVisibilityChanged})
+  const new({required Key key, required Widget child, required this.onVisibilityChanged})
     : super(key: key, child: child);
 
   /// The callback to invoke when this widget's visibility changes.
@@ -53,7 +53,7 @@ class SliverVisibilityDetector extends SingleChildRenderObjectWidget {
   ///
   /// `onVisibilityChanged` may be `null` to disable this
   /// [SliverVisibilityDetector].
-  const SliverVisibilityDetector({required Key key, required Widget sliver, required this.onVisibilityChanged})
+  const new({required Key key, required Widget sliver, required this.onVisibilityChanged})
     : super(key: key, child: sliver);
 
   /// The callback to invoke when this widget's visibility changes.
@@ -85,14 +85,14 @@ class VisibilityInfo {
   /// If `size` or `visibleBounds` are omitted, the [VisibilityInfo]
   /// will be initialized to [Offset.zero] or [Rect.zero] respectively.  This
   /// will indicate that the corresponding widget is competely hidden.
-  const VisibilityInfo({required this.key, this.size = Size.zero, this.visibleBounds = Rect.zero});
+  const new({required this.key, this.size = Size.zero, this.visibleBounds = Rect.zero});
 
   /// Constructs a [VisibilityInfo] from widget bounds and a corresponding
   /// clipping rectangle.
   ///
   /// [widgetBounds] and [clipRect] are expected to be in the same coordinate
   /// system.
-  factory VisibilityInfo.fromRects({required Key key, required Rect widgetBounds, required Rect clipRect}) {
+  factory fromRects({required Key key, required Rect widgetBounds, required Rect clipRect}) {
     final bool overlaps = widgetBounds.overlaps(clipRect);
     // Compute the intersection in the widget's local coordinates.
     final visibleBounds = overlaps ? widgetBounds.intersect(clipRect).shift(-widgetBounds.topLeft) : Rect.zero;

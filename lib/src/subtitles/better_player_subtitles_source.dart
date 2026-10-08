@@ -5,7 +5,7 @@ import 'package:better_player_plus/src/subtitles/better_player_subtitles_source_
 ///Representation of subtitles source. Used to define subtitles in Better
 /// Player.
 class BetterPlayerSubtitlesSource {
-  BetterPlayerSubtitlesSource({
+  new({
     this.type,
     this.name = 'Default subtitles',
     this.urls,

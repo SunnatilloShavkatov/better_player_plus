@@ -1,6 +1,6 @@
 ///Class used to hold translations for all features within Better Player
 class BetterPlayerTranslations {
-  BetterPlayerTranslations({
+  new({
     this.languageCode = 'en',
     this.generalDefaultError = "Video can't be played",
     this.generalNone = 'None',
@@ -16,7 +16,7 @@ class BetterPlayerTranslations {
     this.qualityAuto = 'Auto',
   });
 
-  factory BetterPlayerTranslations.polish() => BetterPlayerTranslations(
+  factory polish() => BetterPlayerTranslations(
     languageCode: 'pl',
     generalDefaultError: 'Video nie może zostać odtworzone',
     generalNone: 'Brak',
@@ -31,7 +31,7 @@ class BetterPlayerTranslations {
     qualityAuto: 'Automatycznie',
   );
 
-  factory BetterPlayerTranslations.chinese() => BetterPlayerTranslations(
+  factory chinese() => BetterPlayerTranslations(
     languageCode: 'zh',
     generalDefaultError: '无法播放视频',
     generalNone: '没有',
@@ -47,7 +47,7 @@ class BetterPlayerTranslations {
     qualityAuto: '自动',
   );
 
-  factory BetterPlayerTranslations.hindi() => BetterPlayerTranslations(
+  factory hindi() => BetterPlayerTranslations(
     languageCode: 'hi',
     generalDefaultError: 'वीडियो नहीं चलाया जा सकता',
     generalNone: 'कोई नहीं',
@@ -63,7 +63,7 @@ class BetterPlayerTranslations {
     qualityAuto: 'ऑटो',
   );
 
-  factory BetterPlayerTranslations.arabic() => BetterPlayerTranslations(
+  factory arabic() => BetterPlayerTranslations(
     languageCode: 'ar',
     generalDefaultError: 'لا يمكن تشغيل الفيديو',
     generalNone: 'لا يوجد',
@@ -79,7 +79,7 @@ class BetterPlayerTranslations {
     qualityAuto: 'ऑटो',
   );
 
-  factory BetterPlayerTranslations.turkish() => BetterPlayerTranslations(
+  factory turkish() => BetterPlayerTranslations(
     languageCode: 'tr',
     generalDefaultError: 'Video oynatılamıyor',
     generalNone: 'Hiçbiri',
@@ -95,7 +95,7 @@ class BetterPlayerTranslations {
     qualityAuto: 'Otomatik',
   );
 
-  factory BetterPlayerTranslations.vietnamese() => BetterPlayerTranslations(
+  factory vietnamese() => BetterPlayerTranslations(
     languageCode: 'vi',
     generalDefaultError: 'Video không thể phát bây giờ',
     generalNone: 'Không có',
@@ -111,7 +111,7 @@ class BetterPlayerTranslations {
     qualityAuto: 'Tự động',
   );
 
-  factory BetterPlayerTranslations.spanish() => BetterPlayerTranslations(
+  factory spanish() => BetterPlayerTranslations(
     languageCode: 'es',
     generalDefaultError: 'No se puede reproducir el video',
     generalNone: 'Ninguno',

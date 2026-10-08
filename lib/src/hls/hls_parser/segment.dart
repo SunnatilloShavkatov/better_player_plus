@@ -1,7 +1,7 @@
 import 'package:better_player_plus/src/hls/hls_parser/drm_init_data.dart';
 
 class Segment {
-  Segment({
+  new({
     required this.url,
     this.initializationSegment,
     this.durationUs,

@@ -195,7 +195,7 @@ class DataSource {
   /// The [package] argument must be non-null when the asset comes from a
   /// package and null otherwise.
   ///
-  DataSource({
+  new({
     required this.sourceType,
     this.uri,
     this.formatHint,
@@ -369,7 +369,7 @@ class VideoEvent {
   ///
   /// Depending on the [eventType], the [duration], [size] and [buffered]
   /// arguments can be null.
-  const VideoEvent({
+  const new({
     required this.eventType,
     required this.key,
     this.duration,
@@ -472,7 +472,7 @@ enum VideoEventType {
 class DurationRange {
   /// Trusts that the given [start] and [end] are actually in order. They should
   /// both be non-null.
-  const DurationRange(this.start, this.end);
+  const new(this.start, this.end);
 
   /// The beginning of the segment described relative to the beginning of the
   /// entire video. Should be shorter than or equal to [end].

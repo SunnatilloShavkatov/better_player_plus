@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 @immutable
 class Metadata {
-  const Metadata(this.list);
+  const new(this.list);
 
   final List<HlsTrackMetadataEntry> list;
 

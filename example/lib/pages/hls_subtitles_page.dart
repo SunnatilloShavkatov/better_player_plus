@@ -1,6 +1,6 @@
 import 'package:better_player_example/constants.dart';
 import 'package:better_player_plus/better_player_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class HlsSubtitlesPage extends StatefulWidget {
   const HlsSubtitlesPage({super.key});

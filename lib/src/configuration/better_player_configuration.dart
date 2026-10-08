@@ -1,13 +1,13 @@
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:better_player_plus/src/enum/aspect_enum.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 ///Configuration of Better Player. Allows to setup general behavior of player.
 ///Master configuration which contains children that configure specific part
 ///of player.
 class BetterPlayerConfiguration {
-  const BetterPlayerConfiguration({
+  const new({
     this.aspectRatio,
     this.aspectRatioIOS = AspectRatioTypeIOS.fill,
     this.autoPlay = false,

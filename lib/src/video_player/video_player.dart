@@ -5,10 +5,11 @@
 // Dart imports:
 import 'dart:async';
 import 'dart:io';
+
 import 'package:better_player_plus/src/configuration/better_player_buffering_configuration.dart';
 import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:material_ui/material_ui.dart';
 
 final VideoPlayerPlatform _videoPlayerPlatform = VideoPlayerPlatform.instance
   // This will clear all open videos on the platform when a full restart is
@@ -20,7 +21,7 @@ final VideoPlayerPlatform _videoPlayerPlatform = VideoPlayerPlatform.instance
 class VideoPlayerValue {
   /// Constructs a video with the given values. Only [duration] is required. The
   /// rest will initialize with default values when unset.
-  VideoPlayerValue({
+  new({
     required this.duration,
     this.size,
     this.position = Duration.zero,
@@ -38,11 +39,11 @@ class VideoPlayerValue {
   });
 
   /// Returns an instance with a `null` [Duration].
-  VideoPlayerValue.uninitialized() : this(duration: null);
+  new uninitialized() : this(duration: null);
 
   /// Returns an instance with a `null` [Duration] and the given
   /// [errorDescription].
-  VideoPlayerValue.erroneous(String errorDescription) : this(duration: null, errorDescription: errorDescription);
+  new erroneous(String errorDescription) : this(duration: null, errorDescription: errorDescription);
 
   /// The total duration of the video.
   ///
@@ -177,7 +178,7 @@ class VideoPlayerValue {
 /// After [dispose] all further calls are ignored.
 class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Constructs a [VideoPlayerController] and creates video controller on platform side.
-  VideoPlayerController({
+  new({
     this.bufferingConfiguration = const BetterPlayerBufferingConfiguration(),
     bool autoCreate = true,
   }) : super(VideoPlayerValue(duration: null)) {
@@ -641,7 +642,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 /// Widget that displays the video controlled by [controller].
 class VideoPlayer extends StatefulWidget {
   /// Uses the given [controller] for all video rendered in this widget.
-  const VideoPlayer(this.controller, {super.key});
+  const new(this.controller, {super.key});
 
   /// The [VideoPlayerController] responsible for the video being rendered in
   /// this widget.
@@ -652,7 +653,7 @@ class VideoPlayer extends StatefulWidget {
 }
 
 class _VideoPlayerState extends State<VideoPlayer> {
-  _VideoPlayerState() {
+  new() {
     _listener = () {
       final int? newTextureId = widget.controller!.textureId;
       final int newRotationCorrection = widget.controller!.value.rotationCorrection;
@@ -722,7 +723,7 @@ class VideoProgressColors {
   /// [backgroundColor] defaults to gray at 50% opacity. This is the background
   /// color behind both [playedColor] and [bufferedColor] to denote the total
   /// size of the video compared to either of those values.
-  VideoProgressColors({
+  new({
     this.playedColor = const Color.fromRGBO(255, 0, 0, 0.7),
     this.bufferedColor = const Color.fromRGBO(50, 50, 200, 0.2),
     this.backgroundColor = const Color.fromRGBO(200, 200, 200, 0.5),
@@ -745,7 +746,7 @@ class VideoProgressColors {
 }
 
 class _VideoScrubber extends StatefulWidget {
-  const _VideoScrubber({required this.child, required this.controller});
+  const new({required this.child, required this.controller});
 
   final Widget child;
   final VideoPlayerController controller;
@@ -819,7 +820,7 @@ class VideoProgressIndicator extends StatefulWidget {
   /// Defaults will be used for everything except [controller] if they're not
   /// provided. [allowScrubbing] defaults to false, and [padding] will default
   /// to `top: 5.0`.
-  VideoProgressIndicator(
+  new(
     this.controller, {
     VideoProgressColors? colors,
     this.allowScrubbing,
@@ -853,7 +854,7 @@ class VideoProgressIndicator extends StatefulWidget {
 }
 
 class _VideoProgressIndicatorState extends State<VideoProgressIndicator> {
-  _VideoProgressIndicatorState() {
+  new() {
     listener = () {
       if (!mounted) {
         return;
@@ -948,7 +949,7 @@ class ClosedCaption extends StatelessWidget {
   /// [VideoPlayerValue.caption].
   ///
   /// If [text] is null, nothing will be displayed.
-  const ClosedCaption({super.key, this.text, this.textStyle});
+  const new({super.key, this.text, this.textStyle});
 
   /// The text that will be shown in the closed caption, or null if no caption
   /// should be shown.

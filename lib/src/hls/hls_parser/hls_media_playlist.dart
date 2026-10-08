@@ -3,7 +3,7 @@ import 'package:better_player_plus/src/hls/hls_parser/playlist.dart';
 import 'package:better_player_plus/src/hls/hls_parser/segment.dart';
 
 class HlsMediaPlaylist extends HlsPlaylist {
-  HlsMediaPlaylist._({
+  new _({
     required this.playlistType,
     required this.startOffsetUs,
     required this.startTimeUs,
@@ -22,7 +22,7 @@ class HlsMediaPlaylist extends HlsPlaylist {
     required super.hasIndependentSegments,
   });
 
-  factory HlsMediaPlaylist.create({
+  factory create({
     required int playlistType,
     required int? startOffsetUs,
     required int? startTimeUs,

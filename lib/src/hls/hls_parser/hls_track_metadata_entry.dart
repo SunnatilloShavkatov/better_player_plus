@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 @immutable
 class HlsTrackMetadataEntry {
-  const HlsTrackMetadataEntry({this.groupId, this.name, this.variantInfos});
+  const new({this.groupId, this.name, this.variantInfos});
 
   /// The GROUP-ID value of this track, if the track is derived from an EXT-X-MEDIA tag. Null if the
   /// track is not derived from an EXT-X-MEDIA TAG.

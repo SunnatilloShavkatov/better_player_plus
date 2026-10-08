@@ -14,7 +14,7 @@ import 'package:better_player_plus/src/hls/hls_parser/util.dart';
 
 ///HLS helper class
 sealed class BetterPlayerHlsUtils {
-  BetterPlayerHlsUtils._();
+  new _();
 
   static Future<BetterPlayerAsmsDataHolder> parse(String data, String masterPlaylistUrl) async {
     List<BetterPlayerAsmsTrack> tracks = [];

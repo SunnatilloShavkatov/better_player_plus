@@ -2,7 +2,7 @@ import 'package:better_player_plus/src/asms/better_player_asms_subtitle_segment.
 
 ///Representation of HLS / DASH subtitle element.
 class BetterPlayerAsmsSubtitle {
-  BetterPlayerAsmsSubtitle({
+  new({
     this.language,
     this.name,
     this.mimeType,

@@ -1,7 +1,7 @@
 import 'package:better_player_example/constants.dart';
 import 'package:better_player_example/utils.dart';
 import 'package:better_player_plus/better_player_plus.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class SubtitlesPage extends StatefulWidget {
   const SubtitlesPage({super.key});

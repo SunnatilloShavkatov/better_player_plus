@@ -1,5 +1,17 @@
-## Unreleased
+## 2.0.0
 
+**Breaking changes**
+
+* Minimum SDK raised to Dart `>=3.13.0` and Flutter `>=3.47.0`
+* Minimum iOS deployment target raised from 13.0 to 15.0 (podspec and Swift Package)
+* Material and Cupertino widgets now come from the `material_ui` and `cupertino_ui` packages instead of `package:flutter/material.dart` / `package:flutter/cupertino.dart`
+* Codebase migrated to Dart 3.13 primary constructor syntax
+
+**Changes**
+
+* Upgraded Android Media3 dependencies to 1.11.1
+* Upgraded `wakelock_plus` to ^1.8.1 and `flutter_widget_from_html_core` to ^0.17.4
+* Example app now targets iOS 15.0
 * Fixed iOS stall check resuming a player that was paused while it was still buffering (a pause landing in the first second of playback was undone, and looping videos kept streaming off screen)
 * iOS now honours `BetterPlayerBufferingConfiguration.maxBufferMs` through `AVPlayerItem.preferredForwardBufferDuration` when a bounded value is passed; the default keeps AVFoundation's own behaviour
 

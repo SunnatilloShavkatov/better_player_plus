@@ -1,5 +1,8 @@
 include: package:analysis_lints/analysis_options.yaml
 
+formatter:
+  page_width: 120
+
 analyzer:
   errors:
     use_setters_to_change_properties: ignore
@@ -9,3 +12,7 @@ analyzer:
     discarded_futures: ignore
     avoid_positional_boolean_parameters: ignore
     document_ignores: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**

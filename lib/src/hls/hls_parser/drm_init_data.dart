@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart';
 
 @immutable
 class DrmInitData {
-  const DrmInitData({this.schemeType, this.schemeData = const []});
+  const new({this.schemeType, this.schemeData = const []});
 
   final List<SchemeData> schemeData;
   final String? schemeType;

@@ -10,10 +10,10 @@ import 'package:better_player_plus/src/core/better_player_utils.dart';
 import 'package:better_player_plus/src/video_player/video_player.dart';
 
 // Flutter imports:
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class BetterPlayerMaterialControls extends StatefulWidget {
-  const BetterPlayerMaterialControls({
+  const new({
     super.key,
     required this.onControlsVisibilityChanged,
     required this.controlsConfiguration,

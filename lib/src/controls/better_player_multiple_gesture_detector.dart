@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 ///Helper class for GestureDetector used within Better Player. Used to pass
 ///gestures to upper GestureDetectors.
 class BetterPlayerMultipleGestureDetector extends InheritedWidget {
-  const BetterPlayerMultipleGestureDetector({
+  const new({
     super.key,
     required super.child,
     this.onTap,

@@ -87,3 +87,4 @@ example/ios/
 example/assets/
 **/build/
 **/.DS_Store
+/example/android/.kotlin/

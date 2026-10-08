@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart';
 ///Representation of data source which will be played in Better Player. Allows
 ///to setup all necessary configuration connected to video source.
 class BetterPlayerDataSource {
-  BetterPlayerDataSource(
+  new(
     this.type,
     this.url, {
     this.bytes,
@@ -38,7 +38,7 @@ class BetterPlayerDataSource {
 
   ///Factory method to build network data source which uses url as data source
   ///Bytes parameter is not used in this data source.
-  factory BetterPlayerDataSource.network(
+  factory network(
     String url, {
     List<BetterPlayerSubtitlesSource>? subtitles,
     bool? liveStream,
@@ -77,7 +77,7 @@ class BetterPlayerDataSource {
 
   ///Factory method to build file data source which uses url as data source.
   ///Bytes parameter is not used in this data source.
-  factory BetterPlayerDataSource.file(
+  factory file(
     String url, {
     List<BetterPlayerSubtitlesSource>? subtitles,
     bool? useAsmsSubtitles,
@@ -103,7 +103,7 @@ class BetterPlayerDataSource {
 
   ///Factory method to build network data source which uses bytes as data source.
   ///Url parameter is not used in this data source.
-  factory BetterPlayerDataSource.memory(
+  factory memory(
     List<int> bytes, {
     String? videoExtension,
     List<BetterPlayerSubtitlesSource>? subtitles,

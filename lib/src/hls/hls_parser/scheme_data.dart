@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 @immutable
 class SchemeData {
-  const SchemeData({this.licenseServerUrl, required this.mimeType, this.data, this.requiresSecureDecryption});
+  const new({this.licenseServerUrl, required this.mimeType, this.data, this.requiresSecureDecryption});
 
   /// The URL of the server to which license requests should be made. May be null if unknown.
   final String? licenseServerUrl;

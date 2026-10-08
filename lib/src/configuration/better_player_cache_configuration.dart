@@ -3,7 +3,7 @@
 ///maxCacheFileSize > 0. On iOS maxCacheSize and maxCacheFileSize take no effect,
 ///so useCache is used only.
 class BetterPlayerCacheConfiguration {
-  const BetterPlayerCacheConfiguration({
+  const new({
     this.useCache = false,
     this.maxCacheSize = 10 * 1024 * 1024,
     this.maxCacheFileSize = 10 * 1024 * 1024,

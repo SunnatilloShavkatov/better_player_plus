@@ -7,7 +7,7 @@ import 'package:better_player_plus/src/hls/better_player_hls_utils.dart';
 
 ///Base helper class for ASMS parsing.
 class BetterPlayerAsmsUtils {
-  const BetterPlayerAsmsUtils._();
+  const new _();
 
   static const String _hlsExtension = 'm3u8';
   static const String _dashExtension = 'mpd';

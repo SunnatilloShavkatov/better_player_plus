@@ -2,7 +2,7 @@ import 'package:better_player_plus/src/configuration/better_player_drm_type.dart
 
 ///Configuration of DRM used to protect data source
 class BetterPlayerDrmConfiguration {
-  BetterPlayerDrmConfiguration({
+  new({
     this.drmType,
     this.token,
     this.licenseUrl,

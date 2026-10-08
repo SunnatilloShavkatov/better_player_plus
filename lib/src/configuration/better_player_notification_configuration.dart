@@ -1,7 +1,7 @@
 ///Configuration of notification which is displayed once user moves app to
 ///background.
 class BetterPlayerNotificationConfiguration {
-  const BetterPlayerNotificationConfiguration({
+  const new({
     this.showNotification,
     this.title,
     this.author,

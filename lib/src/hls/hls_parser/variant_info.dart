@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 
 @immutable
 class VariantInfo {
-  const VariantInfo({this.bitrate, this.videoGroupId, this.audioGroupId, this.subtitleGroupId, this.captionGroupId});
+  const new({this.bitrate, this.videoGroupId, this.audioGroupId, this.subtitleGroupId, this.captionGroupId});
 
   /// The bitrate as declared by the EXT-X-STREAM-INF tag. */
   final int? bitrate;

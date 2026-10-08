@@ -4,7 +4,7 @@ enum AspectRatioTypeIOS {
   stretch('stretch'),
   resizeAspect('resizeAspect');
 
-  const AspectRatioTypeIOS(this.name);
+  new(this.name);
 
   final String name;
 }

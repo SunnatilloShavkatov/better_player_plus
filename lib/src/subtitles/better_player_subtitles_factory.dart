@@ -5,7 +5,7 @@ import 'package:better_player_plus/src/core/better_player_utils.dart';
 import 'package:better_player_plus/src/subtitles/better_player_subtitle.dart';
 
 class BetterPlayerSubtitlesFactory {
-  const BetterPlayerSubtitlesFactory._();
+  const new _();
 
   static Future<List<BetterPlayerSubtitle>> parseSubtitles(BetterPlayerSubtitlesSource source) async {
     switch (source.type) {

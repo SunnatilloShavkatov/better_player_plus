@@ -1,7 +1,7 @@
 import 'package:better_player_plus/src/hls/hls_parser/util.dart';
 
 class MimeTypes {
-  const MimeTypes._();
+  const new _();
 
   static const String baseTypeVideo = 'video';
   static const String baseTypeAudio = 'audio';
@@ -276,7 +276,7 @@ class MimeTypes {
 }
 
 class CustomMimeType {
-  CustomMimeType({required this.mimeType, required this.codecPrefix, required this.trackType});
+  new({required this.mimeType, required this.codecPrefix, required this.trackType});
 
   final String mimeType;
   final String codecPrefix;

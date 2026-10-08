@@ -2,7 +2,7 @@ import 'package:better_player_plus/src/video_player/video_player.dart';
 import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
 
 class MockVideoPlayerController extends VideoPlayerController {
-  MockVideoPlayerController() : super(autoCreate: false) {
+  new() : super(autoCreate: false) {
     value = VideoPlayerValue(duration: Duration.zero);
   }
 

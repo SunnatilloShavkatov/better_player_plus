@@ -5,7 +5,7 @@ import 'package:better_player_plus/src/hls/hls_parser/rendition.dart';
 import 'package:better_player_plus/src/hls/hls_parser/variant.dart';
 
 class HlsMasterPlaylist extends HlsPlaylist {
-  HlsMasterPlaylist({
+  new({
     super.baseUri,
     super.tags = const [],
     this.variants = const [],

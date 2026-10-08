@@ -6,10 +6,10 @@ import 'package:better_player_plus/src/controls/better_player_progress_colors.da
 import 'package:better_player_plus/src/core/better_player_controller.dart';
 import 'package:better_player_plus/src/video_player/video_player.dart';
 import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 class BetterPlayerCupertinoVideoProgressBar extends StatefulWidget {
-  BetterPlayerCupertinoVideoProgressBar(
+  new(
     this.controller,
     this.betterPlayerController, {
     BetterPlayerProgressColors? colors,
@@ -33,7 +33,7 @@ class BetterPlayerCupertinoVideoProgressBar extends StatefulWidget {
 }
 
 class _VideoProgressBarState extends State<BetterPlayerCupertinoVideoProgressBar> {
-  _VideoProgressBarState() {
+  new() {
     listener = () {
       if (mounted) {
         setState(() {});
@@ -181,7 +181,7 @@ class _VideoProgressBarState extends State<BetterPlayerCupertinoVideoProgressBar
 }
 
 class _ProgressBarPainter extends CustomPainter {
-  _ProgressBarPainter(this.value, this.colors);
+  new(this.value, this.colors);
 
   VideoPlayerValue value;
   BetterPlayerProgressColors colors;

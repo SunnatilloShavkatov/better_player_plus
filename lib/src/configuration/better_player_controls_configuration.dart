@@ -1,12 +1,12 @@
 import 'package:better_player_plus/better_player_plus.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
+import 'package:cupertino_ui/cupertino_ui.dart';
+import 'package:material_ui/material_ui.dart';
 
 ///UI configuration of Better Player. Allows to change colors/icons/behavior
 ///of controls. Used in BetterPlayerConfiguration. Configuration applies only
 ///for player displayed in app, not in notification or PiP mode.
 class BetterPlayerControlsConfiguration {
-  const BetterPlayerControlsConfiguration({
+  const new({
     this.controlBarColor = Colors.black87,
     this.textColor = Colors.white,
     this.iconsColor = Colors.white,
@@ -60,7 +60,7 @@ class BetterPlayerControlsConfiguration {
     this.overflowModalTextColor = Colors.black,
   });
 
-  factory BetterPlayerControlsConfiguration.white() => const BetterPlayerControlsConfiguration(
+  factory white() => const BetterPlayerControlsConfiguration(
     controlBarColor: Colors.white,
     textColor: Colors.black,
     iconsColor: Colors.black,
@@ -70,7 +70,7 @@ class BetterPlayerControlsConfiguration {
     progressBarBackgroundColor: Colors.white70,
   );
 
-  factory BetterPlayerControlsConfiguration.cupertino() => const BetterPlayerControlsConfiguration(
+  factory cupertino() => const BetterPlayerControlsConfiguration(
     fullscreenEnableIcon: CupertinoIcons.arrow_up_left_arrow_down_right,
     fullscreenDisableIcon: CupertinoIcons.arrow_down_right_arrow_up_left,
     playIcon: CupertinoIcons.play_arrow_solid,
@@ -80,7 +80,7 @@ class BetterPlayerControlsConfiguration {
   );
 
   ///Setup BetterPlayerControlsConfiguration based on Theme options.
-  factory BetterPlayerControlsConfiguration.theme(ThemeData theme) => BetterPlayerControlsConfiguration(
+  factory theme(ThemeData theme) => BetterPlayerControlsConfiguration(
     textColor: theme.textTheme.bodyMedium?.color ?? Colors.white,
     iconsColor: theme.textTheme.bodyMedium?.color ?? Colors.white,
   );

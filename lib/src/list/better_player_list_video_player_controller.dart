@@ -1,5 +1,4 @@
 import 'package:better_player_plus/better_player_plus.dart';
-import 'package:better_player_plus/src/video_player/video_player.dart';
 
 ///Controller of Better Player List Video Player.
 class BetterPlayerListVideoPlayerController {
