@@ -517,7 +517,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   /// The position in the current video.
   Future<Duration?> get position async {
-    if (!value.initialized && _isDisposed) {
+    if (!_created || _isDisposed) {
       return null;
     }
     return _videoPlayerPlatform.getPosition(_textureId);
@@ -526,7 +526,7 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// The absolute position in the current video stream
   /// (i.e. EXT-X-PROGRAM-DATE-TIME in HLS).
   Future<DateTime?> get absolutePosition async {
-    if (!value.initialized && _isDisposed) {
+    if (!_created || _isDisposed) {
       return null;
     }
     return _videoPlayerPlatform.getAbsolutePosition(_textureId);
@@ -597,6 +597,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [height] specifies height of the selected track
   /// [bitrate] specifies bitrate of the selected track
   Future<void> setTrackParameters(int? width, int? height, int? bitrate) async {
+    if (!_created || _isDisposed) {
+      return;
+    }
     await _videoPlayerPlatform.setTrackParameters(_textureId, width, height, bitrate);
   }
 
@@ -627,10 +630,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   }
 
   void setAudioTrack(String? name, int? index) {
+    if (!_created || _isDisposed) {
+      return;
+    }
     _videoPlayerPlatform.setAudioTrack(_textureId, name, index);
   }
 
   void setMixWithOthers(bool mixWithOthers) {
+    if (!_created || _isDisposed) {
+      return;
+    }
     _videoPlayerPlatform.setMixWithOthers(_textureId, mixWithOthers);
   }
 
