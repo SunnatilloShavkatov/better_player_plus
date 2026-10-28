@@ -418,23 +418,27 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
     builder: (context, snapshot) {
       final time = snapshot.data;
       if (time != null && time > 0) {
-        return InkWell(
-          onTap: () {
-            _betterPlayerController!.playNextVideo();
-          },
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              margin: const EdgeInsets.only(bottom: 4, right: 8),
-              decoration: BoxDecoration(
-                color: _controlsConfiguration.controlBarColor,
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  '${_betterPlayerController!.translations.controlsNextVideoIn} $time ...',
-                  style: const TextStyle(color: Colors.white),
+        // Only the badge is tappable: the Align fills the player, so wrapping it made any tap
+        // during the countdown skip to the next video.
+        return Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 4, right: 8),
+            child: InkWell(
+              onTap: () {
+                _betterPlayerController!.playNextVideo();
+              },
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _controlsConfiguration.controlBarColor,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    '${_betterPlayerController!.translations.controlsNextVideoIn} $time ...',
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ),

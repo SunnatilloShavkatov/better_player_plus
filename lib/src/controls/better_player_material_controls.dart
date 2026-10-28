@@ -382,23 +382,27 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
     builder: (context, snapshot) {
       final time = snapshot.data;
       if (time != null && time > 0) {
-        return BetterPlayerMaterialClickableWidget(
-          onTap: () {
-            _betterPlayerController!.playNextVideo();
-          },
-          child: Align(
-            alignment: Alignment.bottomRight,
-            child: Container(
-              margin: EdgeInsets.only(bottom: _controlsConfiguration.controlBarHeight + 20, right: 24),
-              decoration: BoxDecoration(
-                color: _controlsConfiguration.controlBarColor,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(12),
-                child: Text(
-                  '${_betterPlayerController!.translations.controlsNextVideoIn} $time...',
-                  style: const TextStyle(color: Colors.white),
+        // Only the badge is tappable: the Align fills the player, so wrapping it made any tap
+        // during the countdown skip to the next video.
+        return Align(
+          alignment: Alignment.bottomRight,
+          child: Padding(
+            padding: EdgeInsets.only(bottom: _controlsConfiguration.controlBarHeight + 20, right: 24),
+            child: BetterPlayerMaterialClickableWidget(
+              onTap: () {
+                _betterPlayerController!.playNextVideo();
+              },
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: _controlsConfiguration.controlBarColor,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Text(
+                    '${_betterPlayerController!.translations.controlsNextVideoIn} $time...',
+                    style: const TextStyle(color: Colors.white),
+                  ),
                 ),
               ),
             ),
