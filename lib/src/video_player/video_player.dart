@@ -388,6 +388,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
 
+    // A pending seek belongs to the previous source. Left set, `_updatePosition` keeps reporting
+    // it until playback passes it, so a shorter next video appears stuck at (or past) its end.
+    _seekPosition = null;
     value = VideoPlayerValue(duration: null, isLooping: value.isLooping, volume: value.volume);
 
     if (!_creatingCompleter.isCompleted) {
