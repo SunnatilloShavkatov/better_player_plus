@@ -3,7 +3,7 @@
 #
 Pod::Spec.new do |s|
   s.name             = 'better_player_plus'
-  s.version          = '2.0.0'
+  s.version          = '2.0.1'
   s.summary          = 'Advanced video player for Flutter with advanced configuration options.'
   s.description      = <<-DESC
 Advanced video player for Flutter, based on video_player and inspired by Chewie and Better Player. 

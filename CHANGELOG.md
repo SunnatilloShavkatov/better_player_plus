@@ -1,3 +1,17 @@
+## 2.0.1
+
+**Fixes**
+
+* Next-video countdown: only the badge is tappable now (Material and Cupertino controls). Previously the whole player area was clickable during the countdown and tapping anywhere skipped to the next video
+* `skipForward` no longer throws when the video duration is unknown
+* Pending seek position is reset when the data source changes, so a shorter next video no longer appears stuck at or past its end
+* `showPlaceholderUntilPlay`: a paused source change no longer hides the video; it is hidden only while waiting for play is requested
+
+**Changes**
+
+* Updated dependencies: `material_ui` to ^1.8.0, `cupertino_ui` to ^1.1.4, `wakelock_plus` to ^1.8.2
+* Added placeholder regression tests (`test/better_player_placeholder_test.dart`)
+
 ## 2.0.0
 
 **Breaking changes**
