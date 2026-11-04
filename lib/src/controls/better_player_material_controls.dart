@@ -499,6 +499,9 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
 
     if (_controlsConfiguration.showControlsOnInitialize) {
       _initTimer = Timer(const Duration(milliseconds: 200), () {
+        if (!mounted) {
+          return;
+        }
         changePlayerControlsNotVisible(false);
       });
     }
@@ -518,6 +521,9 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
     changePlayerControlsNotVisible(true);
     _betterPlayerController!.toggleFullScreen();
     _showAfterExpandCollapseTimer = Timer(_controlsConfiguration.controlsHideTime, () {
+      if (!mounted) {
+        return;
+      }
       setState(cancelAndRestartTimer);
     });
   }
@@ -552,6 +558,9 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
       return;
     }
     _hideTimer = Timer(const Duration(milliseconds: 3000), () {
+      if (!mounted) {
+        return;
+      }
       changePlayerControlsNotVisible(true);
     });
   }
