@@ -234,6 +234,25 @@ extension BetterPlayerPlugin {
             return
         }
 
+        // Cache methods are global: they are invoked without a textureId, so they
+        // must be handled before the player lookup below.
+        switch call.method {
+        case "clearCache":
+            cacheManager.clearCache()
+            result(nil)
+            return
+        case "preCache":
+            preCache(call.arguments as? [String: Any] ?? [:])
+            result(nil)
+            return
+        case "stopPreCache":
+            stopPreCache(call.arguments as? [String: Any] ?? [:])
+            result(nil)
+            return
+        default:
+            break
+        }
+
         guard let argsMap = call.arguments as? [String: Any], let textureId = (argsMap["textureId"] as? NSNumber)?.int64Value, let player = players[textureId] else {
             result(FlutterMethodNotImplemented)
             return
@@ -333,36 +352,6 @@ extension BetterPlayerPlugin {
             let mix = (argsMap["mixWithOthers"] as? NSNumber)?.boolValue ?? false
             player.setMixWithOthers(mix)
             result(nil)
-        case "preCache":
-            let dataSource = argsMap["dataSource"] as? [String: Any] ?? [:]
-            let urlArg = dataSource["uri"] as? String
-            let cacheKey = dataSource["cacheKey"] as? String
-            let headers = dataSource["headers"] as? [String: Any] ?? [:]
-            let maxCacheSize = dataSource["maxCacheSize"] as? NSNumber
-            let videoExtension = dataSource["videoExtension"] as? String
-            if let urlArg = urlArg, let url = URL(string: urlArg) {
-                if cacheManager.isPreCacheSupported(url: url, videoExtension: videoExtension) {
-                    cacheManager.setMaxCacheSize(maxCacheSize)
-                    cacheManager.preCacheURL(url, cacheKey: cacheKey, videoExtension: videoExtension, withHeaders: headers as NSDictionary as! [NSObject: AnyObject]) { _ in }
-                } else {
-                    NSLog("Pre cache is not supported for given data source.")
-                }
-            }
-            result(nil)
-        case "clearCache":
-            cacheManager.clearCache(); result(nil)
-        case "stopPreCache":
-            let urlArg = argsMap["url"] as? String
-            let cacheKey = argsMap["cacheKey"] as? String
-            let videoExtension = argsMap["videoExtension"] as? String
-            if let urlArg = urlArg, let url = URL(string: urlArg) {
-                if cacheManager.isPreCacheSupported(url: url, videoExtension: videoExtension) {
-                    cacheManager.stopPreCache(url, cacheKey: cacheKey) { _ in }
-                } else {
-                    NSLog("Stop pre cache is not supported for given data source.")
-                }
-            }
-            result(nil)
         case "setAspectRatio":
             guard let aspectRatioValue = argsMap["ratio"] as? String else {
                 result(nil)
@@ -387,5 +376,35 @@ extension BetterPlayerPlugin {
 
     public func detachFromEngine(for registrar: FlutterPluginRegistrar) {
         disposeAllPlayers()
+    }
+
+    private func preCache(_ argsMap: [String: Any]) {
+        let dataSource = argsMap["dataSource"] as? [String: Any] ?? [:]
+        let urlArg = dataSource["uri"] as? String
+        let cacheKey = dataSource["cacheKey"] as? String
+        let headers = dataSource["headers"] as? [String: Any] ?? [:]
+        let maxCacheSize = dataSource["maxCacheSize"] as? NSNumber
+        let videoExtension = dataSource["videoExtension"] as? String
+        if let urlArg = urlArg, let url = URL(string: urlArg) {
+            if cacheManager.isPreCacheSupported(url: url, videoExtension: videoExtension) {
+                cacheManager.setMaxCacheSize(maxCacheSize)
+                cacheManager.preCacheURL(url, cacheKey: cacheKey, videoExtension: videoExtension, withHeaders: headers as NSDictionary as! [NSObject: AnyObject]) { _ in }
+            } else {
+                NSLog("Pre cache is not supported for given data source.")
+            }
+        }
+    }
+
+    private func stopPreCache(_ argsMap: [String: Any]) {
+        let urlArg = argsMap["url"] as? String
+        let cacheKey = argsMap["cacheKey"] as? String
+        let videoExtension = argsMap["videoExtension"] as? String
+        if let urlArg = urlArg, let url = URL(string: urlArg) {
+            if cacheManager.isPreCacheSupported(url: url, videoExtension: videoExtension) {
+                cacheManager.stopPreCache(url, cacheKey: cacheKey) { _ in }
+            } else {
+                NSLog("Stop pre cache is not supported for given data source.")
+            }
+        }
     }
 }
