@@ -337,7 +337,11 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
       padding: const EdgeInsets.only(right: 12),
       child: Text(
         BetterPlayerUtils.formatDuration(position),
-        style: TextStyle(color: _controlsConfiguration.textColor, fontSize: 12),
+        style: TextStyle(
+          color: _controlsConfiguration.textColor,
+          fontSize: 12,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }
@@ -351,7 +355,11 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
       padding: const EdgeInsets.only(right: 12),
       child: Text(
         '-${BetterPlayerUtils.formatDuration(position)}',
-        style: TextStyle(color: _controlsConfiguration.textColor, fontSize: 12),
+        style: TextStyle(
+          color: _controlsConfiguration.textColor,
+          fontSize: 12,
+          fontFeatures: const [FontFeature.tabularFigures()],
+        ),
       ),
     );
   }
