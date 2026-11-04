@@ -9,6 +9,18 @@ import 'package:material_ui/material_ui.dart';
 
 ///Base class for both material and cupertino controls
 abstract class BetterPlayerControlsState<T extends StatefulWidget> extends State<T> {
+  /// Runs a player action started from the controls without waiting for its result.
+  ///
+  /// A failing source (e.g. a retry without network) already puts the player into the error state, so the
+  /// controls show the error widget. Without catching it here, the error would also reach the app as an
+  /// uncaught async exception.
+  @protected
+  void runPlayerAction(Future<void> Function() action) {
+    action().catchError((Object error) {
+      BetterPlayerUtils.log('Player action failed: $error');
+    });
+  }
+
   ///Min. time of buffered video to hide loading timer (in milliseconds)
   static const int _bufferingInterval = 20000;
 
@@ -350,7 +362,7 @@ abstract class BetterPlayerControlsState<T extends StatefulWidget> extends State
     return BetterPlayerMaterialClickableWidget(
       onTap: () {
         Navigator.of(context).pop();
-        betterPlayerController!.setResolution(url);
+        runPlayerAction(() => betterPlayerController!.setResolution(url));
       },
       child: Padding(
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
