@@ -31,6 +31,7 @@ class BetterPlayerMaterialControls extends StatefulWidget {
 
 class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<BetterPlayerMaterialControls> {
   VideoPlayerValue? _latestValue;
+  Duration? _dragPosition;
   double? _latestVolume;
   Timer? _hideTimer;
   Timer? _initTimer;
@@ -457,7 +458,7 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
   );
 
   Widget _buildPosition() {
-    final position = _latestValue != null ? _latestValue!.position : Duration.zero;
+    final position = _dragPosition ?? (_latestValue != null ? _latestValue!.position : Duration.zero);
     final duration = _latestValue != null && _latestValue!.duration != null ? _latestValue!.duration! : Duration.zero;
 
     return Padding(
@@ -580,7 +581,17 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
         onDragStart: () {
           _hideTimer?.cancel();
         },
-        onDragEnd: _startHideTimer,
+        onDragUpdate: (Duration position) {
+          setState(() {
+            _dragPosition = position;
+          });
+        },
+        onDragEnd: () {
+          setState(() {
+            _dragPosition = null;
+          });
+          _startHideTimer();
+        },
         onTapDown: cancelAndRestartTimer,
         colors: BetterPlayerProgressColors(
           playedColor: _controlsConfiguration.progressBarPlayedColor,
