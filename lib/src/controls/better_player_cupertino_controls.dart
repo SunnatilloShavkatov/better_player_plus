@@ -486,7 +486,11 @@ class _BetterPlayerCupertinoControlsState extends BetterPlayerControlsState<Bett
   void _onExpandCollapse() {
     changePlayerControlsNotVisible(true);
     _betterPlayerController!.toggleFullScreen();
+    _expandCollapseTimer?.cancel();
     _expandCollapseTimer = Timer(_controlsConfiguration.controlsHideTime, () {
+      if (!mounted) {
+        return;
+      }
       setState(cancelAndRestartTimer);
     });
   }

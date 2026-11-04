@@ -520,6 +520,7 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
   void _onExpandCollapse() {
     changePlayerControlsNotVisible(true);
     _betterPlayerController!.toggleFullScreen();
+    _showAfterExpandCollapseTimer?.cancel();
     _showAfterExpandCollapseTimer = Timer(_controlsConfiguration.controlsHideTime, () {
       if (!mounted) {
         return;
