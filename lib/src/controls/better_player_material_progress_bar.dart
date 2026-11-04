@@ -155,19 +155,16 @@ class _VideoProgressBarState extends State<BetterPlayerMaterialVideoProgressBar>
     final RenderObject? renderObject = context.findRenderObject();
     if (renderObject != null) {
       final box = renderObject as RenderBox;
-      final Offset tapPos = box.globalToLocal(globalPosition);
-      final double relative = tapPos.dx / box.size.width;
-      if (relative > 0) {
-        final Duration position = controller!.value.duration! * relative;
-        lastSeek = position;
-        await betterPlayerController!.seekTo(position);
-        onFinishedLastSeek();
-        if (relative >= 1) {
-          lastSeek = controller!.value.duration;
-          await betterPlayerController!.seekTo(controller!.value.duration!);
-          onFinishedLastSeek();
-        }
+      final duration = controller!.value.duration;
+      if (duration == null || duration.inMilliseconds <= 0 || box.size.width <= 0) {
+        return;
       }
+      final Offset tapPos = box.globalToLocal(globalPosition);
+      final double relative = (tapPos.dx / box.size.width).clamp(0.0, 1.0);
+      final Duration position = duration * relative;
+      lastSeek = position;
+      await betterPlayerController!.seekTo(position);
+      onFinishedLastSeek();
     }
   }
 

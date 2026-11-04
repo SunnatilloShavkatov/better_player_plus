@@ -158,17 +158,10 @@ class _VideoProgressBarState extends State<BetterPlayerCupertinoVideoProgressBar
       }
       final Offset tapPos = box.globalToLocal(globalPosition);
       final double relative = (tapPos.dx / box.size.width).clamp(0.0, 1.0);
-      if (relative > 0) {
-        final Duration position = duration * relative;
-        lastSeek = position;
-        await betterPlayerController!.seekTo(position);
-        onFinishedLastSeek();
-        if (relative >= 1) {
-          lastSeek = duration;
-          await betterPlayerController!.seekTo(duration);
-          onFinishedLastSeek();
-        }
-      }
+      final Duration position = duration * relative;
+      lastSeek = position;
+      await betterPlayerController!.seekTo(position);
+      onFinishedLastSeek();
     }
   }
 
