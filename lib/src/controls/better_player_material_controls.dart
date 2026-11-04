@@ -467,11 +467,21 @@ class _BetterPlayerMaterialControlsState extends BetterPlayerControlsState<Bette
       child: RichText(
         text: TextSpan(
           text: BetterPlayerUtils.formatDuration(position),
-          style: TextStyle(fontSize: 10, color: _controlsConfiguration.textColor, decoration: TextDecoration.none),
+          style: TextStyle(
+            fontSize: 10,
+            color: _controlsConfiguration.textColor,
+            decoration: TextDecoration.none,
+            fontFeatures: const [FontFeature.tabularFigures()],
+          ),
           children: <TextSpan>[
             TextSpan(
               text: ' / ${BetterPlayerUtils.formatDuration(duration)}',
-              style: TextStyle(fontSize: 10, color: _controlsConfiguration.textColor, decoration: TextDecoration.none),
+              style: TextStyle(
+                fontSize: 10,
+                color: _controlsConfiguration.textColor,
+                decoration: TextDecoration.none,
+                fontFeatures: const [FontFeature.tabularFigures()],
+              ),
             ),
           ],
         ),
