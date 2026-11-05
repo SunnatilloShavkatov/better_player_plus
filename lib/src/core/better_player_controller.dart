@@ -10,6 +10,7 @@ import 'package:better_player_plus/src/subtitles/better_player_subtitles_factory
 import 'package:better_player_plus/src/video_player/video_player.dart';
 import 'package:better_player_plus/src/video_player/video_player_platform_interface.dart';
 import 'package:collection/collection.dart' show IterableExtension;
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider/path_provider.dart';
 
@@ -258,6 +259,18 @@ class BetterPlayerController {
       );
     } else {
       _setupSubtitles();
+    }
+
+    // iOS arms automatic Picture in Picture on play. Only allow it when the app
+    // enabled PiP. Not awaited on purpose: the call goes through the same method
+    // channel as the data source, so the native side gets it first, and waiting
+    // here would delay the data source setup.
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
+      unawaited(
+        videoPlayerController
+            ?.setAutomaticPictureInPicture(betterPlayerConfiguration.controlsConfiguration.enablePip)
+            .catchError((Object exception) => BetterPlayerUtils.log('Failed to configure automatic PiP: $exception')),
+      );
     }
 
     ///Process data source

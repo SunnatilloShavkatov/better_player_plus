@@ -317,6 +317,10 @@ extension BetterPlayerPlugin {
             let height = (argsMap["height"] as? NSNumber)?.doubleValue ?? 0
             player.enablePictureInPicture(CGRect(x: left, y: top, width: width, height: height))
             result(nil)
+        case "setAutomaticPictureInPicture":
+            let enabled = (argsMap["enabled"] as? NSNumber)?.boolValue ?? false
+            player.setAllowsAutomaticPictureInPicture(enabled)
+            result(nil)
         case "isPictureInPictureSupported":
             if #available(iOS 9.0, *), AVPictureInPictureController.isPictureInPictureSupported() {
                 result(NSNumber(value: true)); return

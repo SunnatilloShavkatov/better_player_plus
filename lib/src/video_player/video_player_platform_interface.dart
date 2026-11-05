@@ -139,6 +139,12 @@ abstract class VideoPlayerPlatform {
   }
 
   ///Enables PiP mode.
+  /// iOS: whether the system may start Picture in Picture on its own when the
+  /// app goes to the background.
+  Future<void> setAutomaticPictureInPicture(int? textureId, bool enabled) {
+    throw UnimplementedError('setAutomaticPictureInPicture() has not been implemented.');
+  }
+
   Future<void> enablePictureInPicture(int? textureId, double? top, double? left, double? width, double? height) {
     throw UnimplementedError('enablePictureInPicture() has not been implemented.');
   }

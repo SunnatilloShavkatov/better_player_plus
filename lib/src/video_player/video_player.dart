@@ -178,10 +178,8 @@ class VideoPlayerValue {
 /// After [dispose] all further calls are ignored.
 class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Constructs a [VideoPlayerController] and creates video controller on platform side.
-  new({
-    this.bufferingConfiguration = const BetterPlayerBufferingConfiguration(),
-    bool autoCreate = true,
-  }) : super(VideoPlayerValue(duration: null)) {
+  new({this.bufferingConfiguration = const BetterPlayerBufferingConfiguration(), bool autoCreate = true})
+    : super(VideoPlayerValue(duration: null)) {
     if (autoCreate) {
       _create();
     }
@@ -598,6 +596,16 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// [bitrate] specifies bitrate of the selected track
   Future<void> setTrackParameters(int? width, int? height, int? bitrate) async {
     await _videoPlayerPlatform.setTrackParameters(_textureId, width, height, bitrate);
+  }
+
+  Future<void> setAutomaticPictureInPicture(bool enabled) async {
+    if (!_creatingCompleter.isCompleted) {
+      await _creatingCompleter.future;
+    }
+    if (_isDisposed) {
+      return;
+    }
+    await _videoPlayerPlatform.setAutomaticPictureInPicture(_textureId, enabled);
   }
 
   Future<void> enablePictureInPicture({double? top, double? left, double? width, double? height}) async {

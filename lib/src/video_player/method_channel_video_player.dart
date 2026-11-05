@@ -158,6 +158,12 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   }
 
   @override
+  Future<void> setAutomaticPictureInPicture(int? textureId, bool enabled) => _channel.invokeMethod<void>(
+    'setAutomaticPictureInPicture',
+    <String, dynamic>{'textureId': textureId, 'enabled': enabled},
+  );
+
+  @override
   Future<void> enablePictureInPicture(int? textureId, double? top, double? left, double? width, double? height) =>
       _channel.invokeMethod<void>('enablePictureInPicture', <String, dynamic>{
         'textureId': textureId,
