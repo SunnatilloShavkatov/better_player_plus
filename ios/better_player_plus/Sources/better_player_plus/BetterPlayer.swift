@@ -35,6 +35,10 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     private weak var previousPlayerView: UIView?
 
     public var pictureInPicture: Bool = false
+    /// Whether iOS may start PiP on its own when the app goes to the background.
+    /// Dart sets it from `BetterPlayerControlsConfiguration.enablePip`. Off until
+    /// then, so an app with PiP disabled never gets it, not even briefly.
+    private var allowsAutomaticPictureInPicture: Bool = false
     public var observersAdded: Bool = false
     private weak var observedItem: AVPlayerItem?
     public var stalledCount: Int = 0
@@ -553,6 +557,17 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         return ((onScreen ?? candidates.first)?.layer) as? AVPlayerLayer
     }
 
+    /// Allows or forbids iOS to start PiP automatically when the app goes to the
+    /// background (`canStartPictureInPictureAutomaticallyFromInline`).
+    public func setAllowsAutomaticPictureInPicture(_ allowed: Bool) {
+        allowsAutomaticPictureInPicture = allowed
+        if allowed {
+            if isPlaying { armPictureInPicture() }
+        } else if #available(iOS 14.2, *) {
+            pipController?.canStartPictureInPictureAutomaticallyFromInline = false
+        }
+    }
+
     /// Points the PiP controller at the on-screen layer and arms automatic PiP.
     ///
     /// Idempotent and cheap, so it is called from both `view()` and `play()`.
@@ -569,7 +584,10 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     ///   `startPictureInPicture()` from `willResignActive`, so arming late — the
     ///   old code built the controller 0.2s after the button press — can never
     ///   produce background PiP.
-    private func armPictureInPicture() {
+    ///
+    /// `force`: PiP requested explicitly (the PiP button), regardless of automatic PiP.
+    private func armPictureInPicture(force: Bool = false) {
+        guard force || allowsAutomaticPictureInPicture else { return }
         guard AVPictureInPictureController.isPictureInPictureSupported(), let layer = displayLayer else { return }
         // Never swap the controller out from under a live PiP session — that would
         // orphan the window the viewer is watching.
@@ -579,7 +597,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
             pipController?.delegate = self
         }
         if #available(iOS 14.2, *) {
-            pipController?.canStartPictureInPictureAutomaticallyFromInline = true
+            pipController?.canStartPictureInPictureAutomaticallyFromInline = allowsAutomaticPictureInPicture
         }
     }
 
@@ -587,7 +605,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         // `frame` is ignored: the layer is the Flutter platform view, so Flutter
         // already owns its geometry. The parameter stays for channel compatibility.
         try? AVAudioSession.sharedInstance().setActive(true)
-        armPictureInPicture()
+        armPictureInPicture(force: true)
         setPictureInPicture(true)
     }
 
