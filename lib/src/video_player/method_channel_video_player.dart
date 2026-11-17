@@ -191,6 +191,12 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
   Future<void> clearCache() => _channel.invokeMethod<void>('clearCache', <String, dynamic>{});
 
   @override
+  Future<void> setManagesAudioSession(bool managesAudioSession) => _channel.invokeMethod<void>(
+    'setManagesAudioSession',
+    <String, dynamic>{'managesAudioSession': managesAudioSession},
+  );
+
+  @override
   Future<void> preCache(DataSource dataSource, int preCacheSize) {
     final Map<String, dynamic> dataSourceDescription = <String, dynamic>{
       'key': dataSource.key,

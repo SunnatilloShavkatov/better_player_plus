@@ -17,6 +17,8 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
     private var texturesCount: Int64 = -1
     private var notificationPlayer: BetterPlayer?
     private var remoteCommandsInitialized = false
+    // When false, the host app owns AVAudioSession: the plugin never sets its category nor (de)activates it.
+    private var managesAudioSession = true
 
     init(registrar: FlutterPluginRegistrar) {
         self.messenger = registrar.messenger()
@@ -58,6 +60,7 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
     private func onPlayerSetup(_ player: BetterPlayer, result: FlutterResult) {
         let textureId = newTextureId()
         let eventChannel = FlutterEventChannel(name: "better_player_channel/videoEvents\(textureId)", binaryMessenger: messenger)
+        player.managesAudioSession = managesAudioSession
         player.setMixWithOthers(false)
         eventChannel.setStreamHandler(player)
         player.eventChannel = eventChannel
@@ -82,12 +85,12 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
     }
 
     private func setRemoteCommandsNotificationActive() {
-        try? AVAudioSession.sharedInstance().setActive(true)
+        if managesAudioSession { try? AVAudioSession.sharedInstance().setActive(true) }
         UIApplication.shared.beginReceivingRemoteControlEvents()
     }
 
     private func setRemoteCommandsNotificationNotActive() {
-        if players.isEmpty {
+        if managesAudioSession && players.isEmpty {
             try? AVAudioSession.sharedInstance().setActive(false)
         }
         UIApplication.shared.endReceivingRemoteControlEvents()
@@ -208,6 +211,9 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
     }
 
     private func disposeAllPlayers() {
+        // On a cold start there is nothing to dispose and no session of the plugin's to wind down;
+        // the host may already have activated its own before its first call reaches the plugin.
+        let hadPlayers = !players.isEmpty
         for (_, player) in players {
             player.dispose()
             disposeNotificationData(player)
@@ -216,7 +222,7 @@ public class BetterPlayerPlugin: NSObject, FlutterPlugin, FlutterPlatformViewFac
         dataSourceDict.removeAll()
         timeObserverIdDict.removeAll()
         artworkImageDict.removeAll()
-        setRemoteCommandsNotificationNotActive()
+        if hadPlayers { setRemoteCommandsNotificationNotActive() }
     }
 }
 
@@ -224,6 +230,17 @@ extension BetterPlayerPlugin {
     public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         if call.method == "init" {
             disposeAllPlayers()
+            result(nil)
+            return
+        }
+        if call.method == "setManagesAudioSession" {
+            // A malformed call keeps the current owner rather than silently handing the session back.
+            guard let managesAudioSession = ((call.arguments as? [String: Any])?["managesAudioSession"] as? NSNumber)?.boolValue else {
+                result(FlutterError(code: "INVALID_ARGUMENT", message: "setManagesAudioSession expects a managesAudioSession bool", details: nil))
+                return
+            }
+            self.managesAudioSession = managesAudioSession
+            for (_, player) in players { player.managesAudioSession = managesAudioSession }
             result(nil)
             return
         }
@@ -282,7 +299,9 @@ extension BetterPlayerPlugin {
             setRemoteCommandsNotificationNotActive()
             players.removeValue(forKey: textureId)
             dataSourceDict.removeValue(forKey: textureId)
-            if players.isEmpty { try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation]) }
+            if managesAudioSession && players.isEmpty {
+                try? AVAudioSession.sharedInstance().setActive(false, options: [.notifyOthersOnDeactivation])
+            }
             result(nil)
         case "setLooping":
             if let looping = (argsMap["looping"] as? NSNumber)?.boolValue { player.isLooping = looping }

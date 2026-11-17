@@ -636,6 +636,11 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
 
   static Future<void> clearCache() => _videoPlayerPlatform.clearCache();
 
+  /// Sets whether the plugin owns the platform audio session. See
+  /// [BetterPlayerController.setManagesAudioSession].
+  static Future<void> setManagesAudioSession(bool managesAudioSession) =>
+      _videoPlayerPlatform.setManagesAudioSession(managesAudioSession);
+
   static Future<void> preCache(DataSource dataSource, int preCacheSize) =>
       _videoPlayerPlatform.preCache(dataSource, preCacheSize);
 

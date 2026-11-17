@@ -20,6 +20,8 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     public private(set) var disposed: Bool = false
     public private(set) var isPlaying: Bool = false
     public var isLooping: Bool = false
+    /// When false, the host app owns `AVAudioSession`: this player never sets its category nor activates it.
+    public var managesAudioSession: Bool = true
     public private(set) var isInitialized: Bool = false
     public private(set) var key: String? = nil
     public private(set) var failedCount: Int = 0
@@ -586,7 +588,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     public func enablePictureInPicture(_ frame: CGRect) {
         // `frame` is ignored: the layer is the Flutter platform view, so Flutter
         // already owns its geometry. The parameter stays for channel compatibility.
-        try? AVAudioSession.sharedInstance().setActive(true)
+        if managesAudioSession { try? AVAudioSession.sharedInstance().setActive(true) }
         armPictureInPicture()
         setPictureInPicture(true)
     }
@@ -676,6 +678,7 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     public func setMixWithOthers(_ mixWithOthers: Bool) {
+        guard managesAudioSession else { return }
         if mixWithOthers {
             try? AVAudioSession.sharedInstance().setCategory(.playback, options: [.mixWithOthers])
         } else {

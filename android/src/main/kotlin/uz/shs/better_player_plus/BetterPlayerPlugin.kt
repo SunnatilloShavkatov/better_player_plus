@@ -140,6 +140,8 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
             PRE_CACHE_METHOD -> preCache(call, result)
             STOP_PRE_CACHE_METHOD -> stopPreCache(call, result)
             CLEAR_CACHE_METHOD -> clearCache(result)
+            // The audio session is an iOS concept; Android audio focus stays with ExoPlayer.
+            SET_MANAGES_AUDIO_SESSION_METHOD -> result.success(null)
             else -> {
                 if (call.argument<Any>(TEXTURE_ID_PARAMETER) == null) {
 //                    result.error(
@@ -605,6 +607,7 @@ class BetterPlayerPlugin : FlutterPlugin, ActivityAware, MethodCallHandler {
         private const val SET_MIX_WITH_OTHERS_METHOD = "setMixWithOthers"
         private const val SET_ASPECT_RATIO_METHOD = "setAspectRatio"
         private const val CLEAR_CACHE_METHOD = "clearCache"
+        private const val SET_MANAGES_AUDIO_SESSION_METHOD = "setManagesAudioSession"
         private const val DISPOSE_METHOD = "dispose"
         private const val PRE_CACHE_METHOD = "preCache"
         private const val STOP_PRE_CACHE_METHOD = "stopPreCache"
