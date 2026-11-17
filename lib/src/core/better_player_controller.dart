@@ -24,8 +24,20 @@ class BetterPlayerController {
     _betterPlayerControlsConfiguration = betterPlayerConfiguration.controlsConfiguration;
     _eventListeners.add(eventListener);
     if (betterPlayerDataSource != null) {
-      setupDataSource(betterPlayerDataSource);
+      // The constructor cannot await: a setup that fails, or that outlives a dispose, must end as an
+      // `exception` event for the listeners, never as an error nobody awaits.
+      unawaited(setupDataSource(betterPlayerDataSource).catchError(_onSetupDataSourceError));
     }
+  }
+
+  void _onSetupDataSourceError(Object error, StackTrace stackTrace) {
+    // A player that already reported its error has posted the event through _onVideoPlayerChanged.
+    if (_disposed || (videoPlayerController?.value.hasError ?? false)) {
+      return;
+    }
+    _postEvent(
+      BetterPlayerEvent(BetterPlayerEventType.exception, parameters: <String, dynamic>{'exception': error.toString()}),
+    );
   }
 
   static const String _durationParameter = 'duration';
@@ -253,7 +265,9 @@ class BetterPlayerController {
     if (_isDataSourceAsms(betterPlayerDataSource)) {
       unawaited(
         _setupAsmsDataSource(betterPlayerDataSource).then((value) {
-          _setupSubtitles();
+          if (!_disposed) {
+            _setupSubtitles();
+          }
         }),
       );
     } else {
@@ -262,6 +276,10 @@ class BetterPlayerController {
 
     ///Process data source
     await _setupDataSource(betterPlayerDataSource);
+    // Disposed while the source was loading: the native player is gone, a track call would only fail.
+    if (_disposed) {
+      return;
+    }
     await setTrack(BetterPlayerAsmsTrack.defaultTrack());
   }
 
@@ -288,8 +306,14 @@ class BetterPlayerController {
   ///master playlist.
   Future<void> _setupAsmsDataSource(BetterPlayerDataSource source) async {
     final String? data = await BetterPlayerAsmsUtils.getDataFromUrl(betterPlayerDataSource!.url, _getHeaders());
+    if (_disposed) {
+      return;
+    }
     if (data != null) {
       final BetterPlayerAsmsDataHolder response = await BetterPlayerAsmsUtils.parse(data, betterPlayerDataSource!.url);
+      if (_disposed) {
+        return;
+      }
 
       /// Load tracks
       if (_betterPlayerDataSource?.useAsmsTracks ?? false) {
