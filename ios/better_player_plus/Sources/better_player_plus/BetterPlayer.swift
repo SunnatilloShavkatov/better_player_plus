@@ -87,7 +87,11 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         // fullscreen destroys that route's platform view without calling view()
         // again, so without this hook PiP would stay armed against a dead layer and
         // backgrounding from there would produce a black or frozen PiP window.
-        playerView.onWindowChanged = { [weak self] in self?.armPictureInPicture() }
+        playerView.onWindowChanged = { [weak self] in
+            self?.armPictureInPicture()
+            self?.finishRestoreIfOnScreen()
+        }
+        playerView.onLayout = { [weak self] in self?.finishRestoreIfOnScreen() }
         // Arm PiP up front rather than on the PiP button press: that is what lets
         // iOS move playback into a PiP window when the app is backgrounded — see
         // armPictureInPicture().
@@ -539,6 +543,54 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
         restoreUIOnPipStop = nil
     }
 
+    private static let restoreTimeout: TimeInterval = 1
+    private static let restoreStabilityDelay: TimeInterval = 0.05
+    private var restoreDeadline: DispatchWorkItem?
+    private var restoreStabilityCheck: DispatchWorkItem?
+
+    /// The frame iOS animates the window back onto: that of the layer the controller plays from, once
+    /// its view is on screen. Any other player view would be the wrong target.
+    private var restoreTargetFrame: CGRect? {
+        guard let view = pipController?.playerLayer.delegate as? UIView, view.window != nil, !view.bounds.isEmpty else {
+            return nil
+        }
+
+        return view.convert(view.bounds, to: nil)
+    }
+
+    /// iOS follows the layer while it animates the window back, so the restore is only finished once
+    /// that frame has held still: handing it a frame still growing makes the window shrink, then grow.
+    private func finishRestoreIfOnScreen() {
+        guard restoreUIOnPipStop != nil, let frame = restoreTargetFrame else { return }
+
+        restoreStabilityCheck?.cancel()
+        let check = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+
+            // A frame can move without laying the view out again, so the check re-arms itself.
+            guard self.restoreTargetFrame == frame else {
+                self.finishRestoreIfOnScreen()
+                return
+            }
+
+            self.finishRestore(restored: true)
+        }
+        restoreStabilityCheck = check
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.restoreStabilityDelay, execute: check)
+    }
+
+    /// `restored` tells iOS whether the layer is on screen to land on; it flies the window onto nothing
+    /// when told so wrongly.
+    private func finishRestore(restored: Bool) {
+        guard restoreUIOnPipStop != nil else { return }
+
+        restoreDeadline?.cancel()
+        restoreDeadline = nil
+        restoreStabilityCheck?.cancel()
+        restoreStabilityCheck = nil
+        setRestoreUserInterfaceForPIPStopCompletionHandler(restored)
+    }
+
     /// The AVPlayerLayer that is actually on screen.
     ///
     /// The iOS side of this plugin is a platform view — `BetterPlayerView` has
@@ -658,8 +710,19 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     public func pictureInPictureController(_ pictureInPictureController: AVPictureInPictureController, restoreUserInterfaceForPictureInPictureStopWithCompletionHandler completionHandler: @escaping (Bool) -> Void) {
+        // A request still pending is settled before the new one takes its place, or iOS waits on it forever.
+        finishRestore(restored: restoreTargetFrame != nil)
         restoreUIOnPipStop = completionHandler
-        setRestoreUserInterfaceForPIPStopCompletionHandler(true)
+        // iOS animates the window back onto the layer it plays from, so the restore waits for that layer
+        // to be on screen; bounded, since iOS keeps the window up until it is told.
+        let deadline = DispatchWorkItem { [weak self] in
+            guard let self else { return }
+
+            self.finishRestore(restored: self.restoreTargetFrame != nil)
+        }
+        restoreDeadline = deadline
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.restoreTimeout, execute: deadline)
+        finishRestoreIfOnScreen()
     }
 
     // MARK: - Audio & Tracks
@@ -707,6 +770,8 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
     }
 
     public func disposeSansEventChannel() {
+        // A pending restore must not outlive the player, or iOS waits on a handler nobody calls.
+        finishRestore(restored: false)
         do {
             clear()
         }

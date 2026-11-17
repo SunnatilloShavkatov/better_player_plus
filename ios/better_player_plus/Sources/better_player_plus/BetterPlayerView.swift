@@ -23,6 +23,15 @@ public class BetterPlayerView: UIView {
     /// only signal that the layer PiP is attached to has gone away.
     public var onWindowChanged: (() -> Void)?
 
+    /// Called after every layout pass, so a picture-in-picture restore can follow the frame Flutter
+    /// gives this view.
+    public var onLayout: (() -> Void)?
+
+    public override func layoutSubviews() {
+        super.layoutSubviews()
+        onLayout?()
+    }
+
     public override func didMoveToWindow() {
         super.didMoveToWindow()
         onWindowChanged?()
