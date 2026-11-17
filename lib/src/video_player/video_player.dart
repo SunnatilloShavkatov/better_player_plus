@@ -178,10 +178,8 @@ class VideoPlayerValue {
 /// After [dispose] all further calls are ignored.
 class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
   /// Constructs a [VideoPlayerController] and creates video controller on platform side.
-  new({
-    this.bufferingConfiguration = const BetterPlayerBufferingConfiguration(),
-    bool autoCreate = true,
-  }) : super(VideoPlayerValue(duration: null)) {
+  new({this.bufferingConfiguration = const BetterPlayerBufferingConfiguration(), bool autoCreate = true})
+    : super(VideoPlayerValue(duration: null)) {
     if (autoCreate) {
       _create();
     }
@@ -240,10 +238,13 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
             value = value.copyWith(isBuffering: false);
           }
 
+        // Reported by the platform, so only followed here: sending them back as commands echoes
+        // every play/pause, and two of them crossing (a pause and a play sent back to back)
+        // keep the player flipping between the two for good.
         case VideoEventType.play:
-          play();
+          _followPlatformPlayback(isPlaying: true);
         case VideoEventType.pause:
-          pause();
+          _followPlatformPlayback(isPlaying: false);
         case VideoEventType.seek:
           seekTo(event.position);
         case VideoEventType.pipStart:
@@ -478,27 +479,39 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       if (_isDisposed) {
         return;
       }
-      _timer?.cancel();
-      _timer = Timer.periodic(const Duration(milliseconds: 300), (Timer timer) async {
-        if (_isDisposed) {
-          return;
-        }
-        final Duration? newPosition = await position;
-        final DateTime? newAbsolutePosition = await absolutePosition;
-        if (_isDisposed) {
-          return;
-        }
-        _updatePosition(newPosition, absolutePosition: newAbsolutePosition);
-        if (_seekPosition != null && newPosition != null) {
-          final difference = newPosition.inMilliseconds - _seekPosition!.inMilliseconds;
-          if (difference > 0) {
-            _seekPosition = null;
-          }
-        }
-      });
+      _startPositionUpdates();
     } else {
       await _videoPlayerPlatform.pause(_textureId);
     }
+  }
+
+  void _followPlatformPlayback({required bool isPlaying}) {
+    value = value.copyWith(isPlaying: isPlaying);
+    _timer?.cancel();
+    if (isPlaying) {
+      _startPositionUpdates();
+    }
+  }
+
+  void _startPositionUpdates() {
+    _timer?.cancel();
+    _timer = Timer.periodic(const Duration(milliseconds: 300), (Timer timer) async {
+      if (_isDisposed) {
+        return;
+      }
+      final Duration? newPosition = await position;
+      final DateTime? newAbsolutePosition = await absolutePosition;
+      if (_isDisposed) {
+        return;
+      }
+      _updatePosition(newPosition, absolutePosition: newAbsolutePosition);
+      if (_seekPosition != null && newPosition != null) {
+        final difference = newPosition.inMilliseconds - _seekPosition!.inMilliseconds;
+        if (difference > 0) {
+          _seekPosition = null;
+        }
+      }
+    });
   }
 
   Future<void> _applyVolume() async {

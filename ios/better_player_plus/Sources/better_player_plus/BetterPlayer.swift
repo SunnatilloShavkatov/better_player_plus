@@ -316,13 +316,17 @@ public class BetterPlayer: NSObject, FlutterPlatformView, FlutterStreamHandler, 
                 if let last = lastAvPlayerTimeControlStatus, last == player.timeControlStatus {
                     return
                 }
+                // Dart only follows these events, so the player's own intent follows the window here:
+                // left playing, the next isPlaybackLikelyToKeepUp would restart a stream paused from it.
                 if player.timeControlStatus == .paused {
                     lastAvPlayerTimeControlStatus = player.timeControlStatus
+                    isPlaying = false
                     eventSink?(["event": "pause"])
                     return
                 }
                 if player.timeControlStatus == .playing {
                     lastAvPlayerTimeControlStatus = player.timeControlStatus
+                    isPlaying = true
                     eventSink?(["event": "play"])
                 }
             }

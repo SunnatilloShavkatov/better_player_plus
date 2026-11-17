@@ -510,12 +510,15 @@ internal class BetterPlayer(
                 eventSink.error("VideoError", "Video player had error $error", "")
             }
 
-            override fun onIsPlayingChanged(isPlaying: Boolean) {
-                // Catches play/pause state changes triggered natively (e.g. the
-                // media notification's PlayerNotificationManager controls the
-                // ExoPlayer instance directly), which otherwise never reach Dart.
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                // Catches play/pause requests made natively (e.g. the media
+                // notification's PlayerNotificationManager controls the ExoPlayer
+                // instance directly), which otherwise never reach Dart.
+                // Not onIsPlayingChanged: isPlaying also turns false while the
+                // player rebuffers, and Dart answers a `pause` by pausing for
+                // real, so a stall on a slow network would never resume.
                 val event: MutableMap<String, Any> = HashMap()
-                event["event"] = if (isPlaying) "play" else "pause"
+                event["event"] = if (playWhenReady) "play" else "pause"
                 eventSink.success(event)
             }
         })
