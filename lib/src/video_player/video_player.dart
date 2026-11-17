@@ -36,6 +36,7 @@ class VideoPlayerValue {
     this.isPip = false,
     this.aspectRatioIOS = '',
     this.rotationCorrection = 0,
+    this.crop = fullFrame,
   });
 
   /// Returns an instance with a `null` [Duration].
@@ -44,6 +45,9 @@ class VideoPlayerValue {
   /// Returns an instance with a `null` [Duration] and the given
   /// [errorDescription].
   new erroneous(String errorDescription) : this(duration: null, errorDescription: errorDescription);
+
+  /// The whole frame, as fractions of it.
+  static const Rect fullFrame = Rect.fromLTRB(0, 0, 1, 1);
 
   /// The total duration of the video.
   ///
@@ -95,6 +99,10 @@ class VideoPlayerValue {
   /// Clockwise rotation, in degrees, the texture needs to be displayed upright.
   final int rotationCorrection;
 
+  /// The part of the texture that is picture, as fractions of it. The rest is padding the
+  /// platform did not crop away, and is not displayed.
+  final Rect crop;
+
   /// Indicates whether or not the video has been loaded and is ready to play.
   bool get initialized => duration != null;
 
@@ -132,6 +140,7 @@ class VideoPlayerValue {
     bool? isPip,
     String? aspectRatioIOS,
     int? rotationCorrection,
+    Rect? crop,
   }) => VideoPlayerValue(
     duration: duration ?? this.duration,
     size: size ?? this.size,
@@ -147,6 +156,7 @@ class VideoPlayerValue {
     isPip: isPip ?? this.isPip,
     aspectRatioIOS: aspectRatioIOS ?? this.aspectRatioIOS,
     rotationCorrection: rotationCorrection ?? this.rotationCorrection,
+    crop: crop ?? this.crop,
   );
 
   @override
@@ -163,6 +173,7 @@ class VideoPlayerValue {
       'volume: $volume, '
       'aspectRatioIOS: $aspectRatioIOS, '
       'rotationCorrection: $rotationCorrection, '
+      'crop: $crop, '
       'errorDescription: $errorDescription)';
 }
 
@@ -250,6 +261,8 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
           value = value.copyWith(isPip: true);
         case VideoEventType.pipStop:
           value = value.copyWith(isPip: false);
+        case VideoEventType.crop:
+          value = value.copyWith(crop: event.crop);
         case VideoEventType.unknown:
           break;
       }
@@ -391,7 +404,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
     // A pending seek belongs to the previous source. Left set, `_updatePosition` keeps reporting
     // it until playback passes it, so a shorter next video appears stuck at (or past) its end.
     _seekPosition = null;
-    value = VideoPlayerValue(duration: null, isLooping: value.isLooping, volume: value.volume);
+    // The crop is kept: the platform only reports it when it changes, so a new source cut the same
+    // way would otherwise leave the padding on screen.
+    value = VideoPlayerValue(duration: null, isLooping: value.isLooping, volume: value.volume, crop: value.crop);
 
     if (!_creatingCompleter.isCompleted) {
       await _creatingCompleter.future;
@@ -660,10 +675,12 @@ class _VideoPlayerState extends State<VideoPlayer> {
     _listener = () {
       final int? newTextureId = widget.controller!.textureId;
       final int newRotationCorrection = widget.controller!.value.rotationCorrection;
-      if (newTextureId != _textureId || newRotationCorrection != _rotationCorrection) {
+      final Rect newCrop = widget.controller!.value.crop;
+      if (newTextureId != _textureId || newRotationCorrection != _rotationCorrection || newCrop != _crop) {
         setState(() {
           _textureId = newTextureId;
           _rotationCorrection = newRotationCorrection;
+          _crop = newCrop;
         });
       }
     };
@@ -672,12 +689,14 @@ class _VideoPlayerState extends State<VideoPlayer> {
   late VoidCallback _listener;
   int? _textureId;
   int _rotationCorrection = 0;
+  Rect _crop = VideoPlayerValue.fullFrame;
 
   @override
   void initState() {
     super.initState();
     _textureId = widget.controller!.textureId;
     _rotationCorrection = widget.controller!.value.rotationCorrection;
+    _crop = widget.controller!.value.crop;
     // Need to listen for initialization events since the actual texture ID
     // becomes available after asynchronous initialization finishes.
     widget.controller!.addListener(_listener);
@@ -689,6 +708,7 @@ class _VideoPlayerState extends State<VideoPlayer> {
     oldWidget.controller!.removeListener(_listener);
     _textureId = widget.controller!.textureId;
     _rotationCorrection = widget.controller!.value.rotationCorrection;
+    _crop = widget.controller!.value.crop;
     widget.controller!.addListener(_listener);
   }
 
@@ -703,9 +723,40 @@ class _VideoPlayerState extends State<VideoPlayer> {
     if (_textureId == null) {
       return Container();
     }
-    final Widget view = _videoPlayerPlatform.buildView(_textureId);
+    final Widget texture = _videoPlayerPlatform.buildView(_textureId);
+    // The crop is in the frame's own coordinates, so it applies before the rotation.
+    final Widget view = _crop == VideoPlayerValue.fullFrame ? texture : _CroppedTexture(crop: _crop, child: texture);
     return _rotationCorrection == 0 ? view : RotatedBox(quarterTurns: _rotationCorrection ~/ 90, child: view);
   }
+}
+
+/// Shows only [crop] of [child], stretched over the whole box.
+class _CroppedTexture extends StatelessWidget {
+  const new({required this.crop, required this.child});
+
+  final Rect crop;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (BuildContext context, BoxConstraints constraints) {
+      if (!constraints.hasBoundedWidth || !constraints.hasBoundedHeight || crop.isEmpty) {
+        return child;
+      }
+      final double width = constraints.maxWidth / crop.width;
+      final double height = constraints.maxHeight / crop.height;
+      return ClipRect(
+        child: OverflowBox(
+          alignment: Alignment.topLeft,
+          minWidth: width,
+          maxWidth: width,
+          minHeight: height,
+          maxHeight: height,
+          child: Transform.translate(offset: Offset(-crop.left * width, -crop.top * height), child: child),
+        ),
+      );
+    },
+  );
 }
 
 /// Used to configure the [VideoProgressIndicator] widget's colors for how it

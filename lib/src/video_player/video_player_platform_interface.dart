@@ -377,6 +377,7 @@ class VideoEvent {
     this.buffered,
     this.position,
     this.rotationCorrection = 0,
+    this.crop,
   });
 
   /// The type of the event.
@@ -410,6 +411,11 @@ class VideoEvent {
   /// Only used if [eventType] is [VideoEventType.initialized].
   final int rotationCorrection;
 
+  /// The visible part of the platform's frames, as fractions of the frame.
+  ///
+  /// Only used if [eventType] is [VideoEventType.crop].
+  final Rect? crop;
+
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -420,11 +426,17 @@ class VideoEvent {
           duration == other.duration &&
           size == other.size &&
           rotationCorrection == other.rotationCorrection &&
+          crop == other.crop &&
           listEquals(buffered, other.buffered);
 
   @override
   int get hashCode =>
-      eventType.hashCode ^ duration.hashCode ^ size.hashCode ^ rotationCorrection.hashCode ^ buffered.hashCode;
+      eventType.hashCode ^
+      duration.hashCode ^
+      size.hashCode ^
+      rotationCorrection.hashCode ^
+      crop.hashCode ^
+      buffered.hashCode;
 }
 
 /// Type of the event.
@@ -461,6 +473,10 @@ enum VideoEventType {
 
   /// Picture in picture mode has been dismissed
   pipStop,
+
+  /// The platform shows more of its frames than the video: only [VideoEvent.crop] of each is
+  /// picture.
+  crop,
 
   /// An unknown event has been received.
   unknown,

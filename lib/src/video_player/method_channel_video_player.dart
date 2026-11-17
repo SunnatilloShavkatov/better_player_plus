@@ -280,6 +280,18 @@ class MethodChannelVideoPlayer extends VideoPlayerPlatform {
           case 'pipStop':
             return VideoEvent(eventType: VideoEventType.pipStop, key: key);
 
+          case 'crop':
+            return VideoEvent(
+              eventType: VideoEventType.crop,
+              key: key,
+              crop: Rect.fromLTRB(
+                (map['left'] as num).toDouble(),
+                (map['top'] as num).toDouble(),
+                (map['right'] as num).toDouble(),
+                (map['bottom'] as num).toDouble(),
+              ),
+            );
+
           default:
             return VideoEvent(eventType: VideoEventType.unknown, key: key);
         }

@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.media.MediaFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -68,6 +69,7 @@ import androidx.media3.exoplayer.source.ClippingMediaSource
 import androidx.media3.exoplayer.source.MediaSource
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.exoplayer.trackselection.DefaultTrackSelector
+import androidx.media3.exoplayer.video.VideoFrameMetadataListener
 import java.io.File
 import java.lang.Exception
 import java.lang.IllegalStateException
@@ -94,6 +96,21 @@ internal class BetterPlayer(
     private var refreshHandler: Handler? = null
     private var refreshRunnable: Runnable? = null
     private var exoPlayerEventListener: Player.Listener? = null
+    private val cropHandler = Handler(Looper.getMainLooper())
+
+    // The visible part of the decoder's frames, as fractions of the frame, last sent to Dart.
+    // Only touched on the playback thread.
+    private var reportedCrop: List<Double>? = null
+
+    // A producer that does not apply the decoder's crop shows the whole frame, padding rows
+    // included: a decoder that rounds 396 rows up to 416 draws a black band under the picture.
+    // Dart crops the texture to the visible part instead.
+    private val cropListener = VideoFrameMetadataListener { _, _, _, mediaFormat ->
+        val crop = mediaFormat?.let(::visibleRegion) ?: return@VideoFrameMetadataListener
+        if (crop == reportedCrop) return@VideoFrameMetadataListener
+        reportedCrop = crop
+        cropHandler.post { sendCrop(crop) }
+    }
     private var bitmap: Bitmap? = null
     private var mediaSession: MediaSessionCompat? = null
     private var drmSessionManager: DrmSessionManager? = null
@@ -472,6 +489,9 @@ internal class BetterPlayer(
             }
         })
         exoPlayer?.setVideoSurface(surfaceProducer.surface)
+        if (!surfaceProducer.handlesCropAndRotation()) {
+            exoPlayer?.setVideoFrameMetadataListener(cropListener)
+        }
         setAudioAttributes(exoPlayer, true)
         exoPlayer?.addListener(object : Player.Listener {
             override fun onPlaybackStateChanged(playbackState: Int) {
@@ -635,6 +655,34 @@ internal class BetterPlayer(
         }
     }
 
+    private fun visibleRegion(mediaFormat: MediaFormat): List<Double>? {
+        val width = mediaFormat.integerOrNull(MediaFormat.KEY_WIDTH) ?: return null
+        val height = mediaFormat.integerOrNull(MediaFormat.KEY_HEIGHT) ?: return null
+        if (width <= 0 || height <= 0) return null
+        val left = mediaFormat.integerOrNull("crop-left") ?: 0
+        val top = mediaFormat.integerOrNull("crop-top") ?: 0
+        val right = mediaFormat.integerOrNull("crop-right") ?: (width - 1)
+        val bottom = mediaFormat.integerOrNull("crop-bottom") ?: (height - 1)
+        return listOf(
+            left.toDouble() / width,
+            top.toDouble() / height,
+            (right + 1).toDouble() / width,
+            (bottom + 1).toDouble() / height,
+        )
+    }
+
+    private fun MediaFormat.integerOrNull(key: String): Int? = if (containsKey(key)) getInteger(key) else null
+
+    private fun sendCrop(crop: List<Double>) {
+        val event: MutableMap<String, Any> = HashMap()
+        event["event"] = "crop"
+        event["left"] = crop[0]
+        event["top"] = crop[1]
+        event["right"] = crop[2]
+        event["bottom"] = crop[3]
+        eventSink.success(event)
+    }
+
     private fun getDuration(): Long = exoPlayer?.duration ?: 0L
 
     /**
@@ -781,6 +829,8 @@ internal class BetterPlayer(
             exoPlayer?.stop()
         }
         surfaceProducer.setCallback(null)
+        exoPlayer?.clearVideoFrameMetadataListener(cropListener)
+        cropHandler.removeCallbacksAndMessages(null)
         eventChannel.setStreamHandler(null)
         eventSink.setDelegate(null)
         // The player must be released before the producer that owns its surface.
