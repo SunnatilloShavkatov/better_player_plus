@@ -9,7 +9,7 @@ if (agpMajor < 9) {
 }
 
 group = "uz.shs.better_player_plus"
-version = "2.0.0"
+version = "2.0.1"
 
 val lifecycleVersion = "2.9.4"
 val annotationVersion = "1.9.1"

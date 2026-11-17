@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:math';
+
 import 'package:better_player_plus/better_player_plus.dart';
 import 'package:better_player_plus/src/configuration/better_player_controller_event.dart';
 import 'package:better_player_plus/src/controls/better_player_cupertino_controls.dart';
@@ -257,11 +258,14 @@ class _BetterPlayerVideoFitWidgetState extends State<_BetterPlayerVideoFitWidget
           });
         }
       }
+
       if (event == BetterPlayerControllerEvent.setupDataSource) {
         setState(() {
-          _started = false;
+          // A paused source change only hides the video when waiting for play is requested.
+          _started = !widget.betterPlayerController.betterPlayerConfiguration.showPlaceholderUntilPlay;
         });
       }
+
       if (event == BetterPlayerControllerEvent.setFit) {
         if (Platform.isIOS) {
           _applyBoxFitOnIOS(widget.betterPlayerController.getFit());

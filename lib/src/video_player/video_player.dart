@@ -401,6 +401,9 @@ class VideoPlayerController extends ValueNotifier<VideoPlayerValue> {
       return;
     }
 
+    // A pending seek belongs to the previous source. Left set, `_updatePosition` keeps reporting
+    // it until playback passes it, so a shorter next video appears stuck at (or past) its end.
+    _seekPosition = null;
     // The crop is kept: the platform only reports it when it changes, so a new source cut the same
     // way would otherwise leave the padding on screen.
     value = VideoPlayerValue(duration: null, isLooping: value.isLooping, volume: value.volume, crop: value.crop);
