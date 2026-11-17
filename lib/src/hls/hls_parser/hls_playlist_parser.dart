@@ -113,6 +113,10 @@ class HlsPlaylistParser {
   Future<HlsPlaylist> parse(Uri? uri, List<String> inputLineList) async {
     final List<String> lineList = inputLineList.where((line) => line.trim().isNotEmpty).toList();
 
+    if (lineList.isEmpty) {
+      throw UnrecognizedInputFormatException('Input is empty.', uri);
+    }
+
     if (!_checkPlaylistHeader(lineList[0])) {
       throw UnrecognizedInputFormatException('Input does not start with the #EXTM3U header.', uri);
     }
