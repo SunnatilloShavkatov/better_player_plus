@@ -262,6 +262,34 @@ void main() {
       expect(betterPlayerMockController.eventListeners.length, 1);
     });
 
+    test('a listener can remove itself while an event is dispatched', () {
+      final BetterPlayerMockController betterPlayerMockController =
+          BetterPlayerTestUtils.setupBetterPlayerMockController();
+      int otherListenerEventCount = 0;
+      void removeItself(BetterPlayerEvent event) => betterPlayerMockController.removeEventsListener(removeItself);
+      betterPlayerMockController
+        ..addEventsListener(removeItself)
+        ..addEventsListener((event) => otherListenerEventCount++);
+
+      betterPlayerMockController.postEvent(BetterPlayerEvent(BetterPlayerEventType.play));
+
+      expect(otherListenerEventCount, 1);
+      expect(betterPlayerMockController.eventListeners.length, 1);
+    });
+
+    test('a listener can dispose the controller while an event is dispatched', () {
+      final BetterPlayerMockController betterPlayerMockController =
+          BetterPlayerTestUtils.setupBetterPlayerMockController();
+      betterPlayerMockController
+        ..addEventsListener((event) => betterPlayerMockController.dispose(forceDispose: true))
+        ..addEventsListener((event) {});
+
+      expect(
+        () => betterPlayerMockController.postEvent(BetterPlayerEvent(BetterPlayerEventType.exception)),
+        returnsNormally,
+      );
+    });
+
     test('setVolume changes volume', () {
       final mockVideoPlayerController = MockVideoPlayerController();
       final BetterPlayerMockController betterPlayerMockController =

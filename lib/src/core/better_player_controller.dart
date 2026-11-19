@@ -712,7 +712,8 @@ class BetterPlayerController {
 
   ///Send player event to all listeners.
   void _postEvent(BetterPlayerEvent betterPlayerEvent) {
-    for (final void Function(BetterPlayerEvent)? eventListener in _eventListeners) {
+    // A listener may remove listeners or dispose the controller, which clears them: walk a copy.
+    for (final void Function(BetterPlayerEvent)? eventListener in List.of(_eventListeners)) {
       if (eventListener != null) {
         eventListener(betterPlayerEvent);
       }
